@@ -21,12 +21,13 @@ class TestAdminLogin:
     @allure.title("User can log in with valid credentials")
     def test_login(self, admin_login_page: AdminLoginPage):
         """User with valid creds can log in and main admin page is loaded"""
-        with given("admin user with valid credentials"):
+        with given("admin user with valid credentials is at login page"):
             username = SUPERADMIN_USERNAME
             password = SUPERADMIN_PASSWORD
 
-        with when("user puts valid creds and presses Login button"):
             admin_login_page.visit()
+
+        with when("user puts valid creds and presses Login button"):
             admin_page: AdminMainPage = admin_login_page.login(
                 username, password
             )
@@ -69,17 +70,17 @@ class TestAdminLogin:
         )
 
         with given("admin user with invalid credentials "
-                   f'"{username}"/"{password}"'):
-            pass
+                   f'"{username}"/"{password}" is at login page'):
+            admin_login_page.visit()
 
         with when("user puts invalid creds and presses Login button"):
-            admin_login_page.visit()
             admin_login_page.login(username, password, False)
 
         with then("user sees an error message"):
             admin_login_page.login_fail_banner_should_have_text(message)
 
-    # title("User have limited attempts to log in")
+    @allure.title("User have limited attempts to log in and use "
+                  "invalid creds {attempts_to_login} times")
     @pytest.mark.parametrize("attempts_to_login, message", (
         (1, messages.get('Admin.Login ErrorOnAttemptsLeft2')),
         (2, messages.get('Admin.Login ErrorOnAttemptsLeft1')),
@@ -87,20 +88,16 @@ class TestAdminLogin:
     ), ids=("1 attempt", "2 attempts", "3 attempts"))
     def test_login_failed_on_several_attempts(self, attempts_to_login, message,
                                               new_admin_user: tuple[str, str],
-                                              admin_login_page: AdminLoginPage,
-                                              test_id: str):
+                                              admin_login_page: AdminLoginPage
+                                              ):
         """When using valid username user have limited number of
         attempts to log in"""
-
-        allure.dynamic.title(
-            f"User have limited attempts to log in [{test_id}]"
-        )
-
-        with given("admin user with valid username but invalid password"):
+        with given("admin user with valid username but invalid password "
+                   "is at login page"):
             username, _ = new_admin_user
+            admin_login_page.visit()
 
         with when(f"user tries to login for {attempts_to_login} times"):
-            admin_login_page.visit()
             for _ in range(attempts_to_login):
                 admin_login_page.login(username, "not-a-password", False)
 
