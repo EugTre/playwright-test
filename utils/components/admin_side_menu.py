@@ -1,5 +1,6 @@
 """Admin Page side menu"""
 
+
 from playwright.sync_api import Page
 from utils.elements import Button
 from .base_component import BaseComponent
@@ -17,9 +18,21 @@ class AdminSideMenu(BaseComponent):
             page, "#sidebar > #logotype > a", "Logo button"
         )
         self.category_button = Button(
-            page, "#sidebar > #box-apps-menu > li[data-code={category}] a",
+            page, "#sidebar > #box-apps-menu > .app[data-code={category}] > a",
             "Category button"
         )
+        self.subcategory_button = Button(
+            page, "#sidebar > #box-apps-menu .doc[data-id={category}] a",
+            "Subcategory button"
+        )
+
+    def click_category(self, category: str):
+        """Clicks category button selected by given category enum"""
+        self.category_button.click(category=category)
+
+    def click_sub_category(self, category: str):
+        """Clicks sub-category button selected by given category enum"""
+        self.subcategory_button.click(category=category)
 
     def should_be_visible(self):
         self.logo_button.should_be_visible()

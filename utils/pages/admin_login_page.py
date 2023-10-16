@@ -10,8 +10,8 @@ from .admin_main_page import AdminMainPage
 
 class AdminLoginPage(BasePage):
     """Admin login page"""
-    def __init__(self, page: Page, base_url: str) -> None:
-        super().__init__(page, base_url)
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
 
         self.username_input = Input(
             page, "input[name=username]", "Username field"
@@ -30,7 +30,7 @@ class AdminLoginPage(BasePage):
     def url(self):
         return '/admin'
 
-    def verify_page(self):
+    def _verify_page_items(self):
         self.login_button.should_be_visible()
 
     def login(self, username: str, password: str,
@@ -54,7 +54,7 @@ class AdminLoginPage(BasePage):
 
             self.login_button.click(**locator_qualifiers)
 
-        return AdminMainPage(self.page, self.base_url) \
+        return AdminMainPage(self.page) \
             if expect_redirect else None
 
     # --- Asserts

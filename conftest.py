@@ -30,6 +30,9 @@ def pytest_configure(config):
         window_size = {"width": width, "height": height}
     pytest.pw_window_size = window_size
 
+    if not config.option.base_url:
+        config.option.base_url = BASE_URL
+
 
 @pytest.fixture
 def maximizable_page(page) -> Page:
@@ -49,13 +52,21 @@ def test_id(request):
 @pytest.fixture
 def admin_login_page(maximizable_page) -> AdminLoginPage:
     """Returns Admin Login Page"""
-    return AdminLoginPage(maximizable_page, BASE_URL)
+    return AdminLoginPage(maximizable_page)
 
 
 @pytest.fixture
 def admin_main_page(maximizable_page) -> AdminMainPage:
     """Returns Admin Main Page"""
-    return AdminMainPage(maximizable_page, BASE_URL)
+    login_page = AdminLoginPage(maximizable_page)
+    login_page.visit()
+
+    admin_page = login_page.login(
+        SUPERADMIN_USERNAME,
+        SUPERADMIN_PASSWORD
+    )
+
+    return admin_page
 
 
 # --- Data generation

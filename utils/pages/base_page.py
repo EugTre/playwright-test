@@ -8,9 +8,8 @@ from playwright.sync_api import Page, Response, expect
 
 class BasePage(ABC):
     """Basic class for page"""
-    def __init__(self, page: Page, base_url: str) -> None:
+    def __init__(self, page: Page) -> None:
         self.page = page
-        self.base_url = base_url
 
     @property
     @abstractmethod
@@ -18,8 +17,13 @@ class BasePage(ABC):
         """Return page's path URL."""
         return '/'
 
-    @abstractmethod
     def verify_page(self):
+        """Verifies that page's key content present as Allure step"""
+        with allure.step("Page is loaded"):
+            self._verify_page_items()
+
+    @abstractmethod
+    def _verify_page_items(self):
         """Verifies that page's key content present"""
 
     @allure.step("Check that page's title is equal to {title}")
@@ -42,7 +46,9 @@ class BasePage(ABC):
             Response | None: result of get request to page URL.
         """
 
-        url = self._full_url(url)
+        if url is None:
+            url = self.url
+
         with allure.step(f'Visiting {url}'):
             response = self.page.goto(
                 url,
@@ -50,7 +56,7 @@ class BasePage(ABC):
             )
 
             if url is None:
-                # If visit invocked to navigate to current page
+                # If visit invoked to navigate to current page
                 # verifiy that page have expected elements
                 self.verify_page()
 
@@ -64,17 +70,3 @@ class BasePage(ABC):
             Response | None: result of get request to page URL.
         """
         return self.page.reload(wait_until="domcontentloaded")
-
-    def _full_url(self, url: str = None) -> str:
-        """Compose full URL from page base url and page's url passed in
-        methods.
-
-        Args:
-            url (str, optional): path url. Page's URL will be used
-            if no url given.
-
-        Returns:
-            str: full URL.
-        """
-        path_url = self.url if url is None else url
-        return f'{self.base_url}{path_url}'
