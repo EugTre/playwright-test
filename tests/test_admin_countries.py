@@ -3,13 +3,13 @@ epic('Admin')
 feature('Categories')
 story('Countries')
 """
-import copy
-
 import pytest
 import allure
 from utils.models.admin_categories import AdminCategory
 from utils.pages import AdminCountriesPage
 from utils.bdd import given, when, then
+from utils import helpers
+from constants import COUNTRIES_ORDERING_RULES
 
 
 @allure.epic('Admin')
@@ -36,25 +36,11 @@ class TestAdminCategoriesCountries:
             admin_category_page.country_list_size_should_be(243)
 
         with then("countries ordering is ascending with special rules"):
-            # Special sorting rules
-            rules = [
-                ('Åland Islands', 'Aland Islands'),
-                ('Türkiye', 'Turkiye')
-            ]
-
             countries = admin_category_page.get_countries()
-            sorted_countries = copy.copy(countries)
-
-            # First replace original values with one from 'rule'
-            # Then sort and revert original values
-            for find_what, replace_with in rules:
-                idx = sorted_countries.index(find_what)
-                sorted_countries[idx] = replace_with
-
-            sorted_countries.sort()
-            for replace_with, find_what in rules:
-                idx = sorted_countries.index(find_what)
-                sorted_countries[idx] = replace_with
+            sorted_countries = helpers.order_by_rules(
+                countries,
+                COUNTRIES_ORDERING_RULES
+            )
 
             assert countries == sorted_countries, \
                 "Countries in the table are not A-Z ordered!"

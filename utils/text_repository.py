@@ -12,7 +12,8 @@ class TextRepository:
     to get value from it."""
     def __init__(self, file: str):
         self.parser = ConfigParser()
-        self.parser.read_file(open(file, encoding="utf-8"))
+        with open(file, encoding="utf-8") as repo_file:
+            self.parser.read_file(repo_file)
 
     def get(self, path: str) -> str | re.Pattern:
         """Returns value from given section and key.

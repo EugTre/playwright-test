@@ -1,6 +1,7 @@
 """Admin main page (after login)"""
 from typing import TYPE_CHECKING
 
+import allure
 from playwright.sync_api import Page
 from utils.elements import Banner
 from utils.components import AdminSideMenu, AdminTopMenu
@@ -16,7 +17,7 @@ class AdminMainPage(BasePage):
     def __init__(self, page: Page) -> None:
         super().__init__(page)
 
-        self.success_login_banner = Banner(
+        self.notification_banner = Banner(
             page, ".alert-success", "Log In notification banner"
         )
         self.top_menu = AdminTopMenu(page)
@@ -43,6 +44,8 @@ class AdminMainPage(BasePage):
         return page_cls(self.page)
 
     # --- Custom assertions
+    @allure.step("Check that notification banner is displayed "
+                 "on successfull login")
     def login_banner_shoule_be_visible(self):
         """Checks that login banner is visible"""
-        self.success_login_banner.should_be_visible()
+        self.notification_banner.should_be_visible()

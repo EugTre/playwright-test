@@ -54,3 +54,10 @@ class Table(BaseElement):
         with allure.step(f'{self.type_of.capitalize()} should have '
                          f'{size} items'):
             expect(rows).to_have_count(size)
+
+    def shold_not_be_empty(self, **locator_qualifiers) -> None:
+        """Checks that table is not empty"""
+        tbody = self.get_locator(**locator_qualifiers).locator('tbody')
+        with allure.step(f'{self.type_of.capitalize()} should have '
+                         'at least 1 item'):
+            expect(tbody).not_to_be_empty()

@@ -14,8 +14,32 @@ class Input(BaseElement):
         return 'input'
 
     # --- Actions
-    def fill(self, value: str, mask_value=False, validate_value=False,
-             **locator_qualifiers):
+    def click_and_fill(
+        self, value: str,
+        mask_value=False, validate_value=False,
+        **locator_qualifiers
+    ):
+        """Clicks and then fills input with value,
+        Args:
+            value (str): value to fill.
+            mask_value (bool, optional): flag to mask value like '***ue' in
+            reports. Defaults to False.
+            validate_value (bool, optional): flag to validate value afterward.
+            Defaults to False.
+        """
+        self.click(**locator_qualifiers)
+        self.fill(
+            value,
+            mask_value=mask_value,
+            validate_value=validate_value,
+            **locator_qualifiers
+        )
+
+    def fill(
+        self, value: str,
+        mask_value=False, validate_value=False,
+        **locator_qualifiers
+    ):
         """Fills input with given value.
 
         Args:

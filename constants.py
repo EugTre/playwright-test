@@ -8,3 +8,9 @@ MESSAGES_REPOSITORY = 'messages.ini'
 # Admin user-pass for test environemnt
 SUPERADMIN_USERNAME = "admin"
 SUPERADMIN_PASSWORD = "secret"
+
+
+COUNTRIES_ORDERING_RULES = [
+    ('Åland Islands', 'Aland Islands'),
+    ('Türkiye', 'Turkiye')
+]

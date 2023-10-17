@@ -8,3 +8,4 @@ from .admin_appearance_favicon_page import AdminAppearanceFaviconPage
 from .admin_catalog_page import AdminCatalogPage
 from .admin_countries_page import AdminCountriesPage
 from .admin_geozones_page import AdminGeozonesPage
+from .admin_geozones_form_page import AdminGeozonesFormPage

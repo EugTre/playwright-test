@@ -1,14 +1,19 @@
 """Fixtures for tests"""
-import random
 import tkinter
 
-import requests
 import pytest
 import allure
 from playwright.sync_api import Page
 
-from utils.pages import AdminLoginPage, AdminMainPage
-from constants import BASE_URL, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
+import utils.api_helpers as api
+from utils import helpers
+from utils.models.admin_geozone import GeozoneEntity
+from utils.pages import AdminLoginPage, AdminMainPage, AdminBasicCategoryPage
+from constants import (
+    BASE_URL,
+    SUPERADMIN_USERNAME,
+    SUPERADMIN_PASSWORD
+)
 
 
 def pytest_addoption(parser):
@@ -41,8 +46,8 @@ def pytest_configure(config):
         config.option.base_url = BASE_URL
 
 
-@pytest.fixture
-def maximizable_page(page) -> Page:
+@pytest.fixture(name='maximizable_page')
+def maximize_page_viewport(page) -> Page:
     """Wrapper for page to handle maximization in PW"""
     if pytest.pw_window_size:
         page.set_viewport_size(pytest.pw_window_size)
@@ -58,7 +63,8 @@ def test_id(request):
 # --- Pages
 # --- Helper functions
 @allure.step("Login as Admin")
-def login_as_admin(page):
+def login_as_admin_step(page):
+    """Step to fullfill login form and log in"""
     login_page = AdminLoginPage(page)
     login_page.visit()
     return login_page.login(
@@ -67,6 +73,7 @@ def login_as_admin(page):
     )
 
 
+# --- Pages fixtures
 @pytest.fixture
 def admin_login_page(maximizable_page) -> AdminLoginPage:
     """Returns Admin Login Page"""
@@ -76,64 +83,77 @@ def admin_login_page(maximizable_page) -> AdminLoginPage:
 @pytest.fixture
 def admin_main_page(maximizable_page) -> AdminMainPage:
     """Returns Admin Main Page"""
-    admin_page = login_as_admin(maximizable_page)
+    admin_page = login_as_admin_step(maximizable_page)
     return admin_page
 
 
 @pytest.fixture
-def admin_category_page(request, maximizable_page) -> AdminMainPage:
+def admin_category_page(request, maximizable_page) -> AdminBasicCategoryPage:
     """Returns Admin Category Page speciied by 'admin_category_page' marker
     of the test"""
     category = request.node.get_closest_marker('admin_category_page').args[0]
-    print(category)
-    admin_page = login_as_admin(maximizable_page)
+    admin_page = login_as_admin_step(maximizable_page)
     category_page = admin_page.change_category(category)
 
     return category_page
 
 
 # --- Data generation
+@allure.title("Create new admin user via API request")
 @pytest.fixture
 def new_admin_user(base_url: str) -> tuple[str, str]:
     """Creates new admin user by API call"""
     # Generate username and password
-    username = ''.join((
-        'admin_',
-        str(random.randrange(1000, 9999)),
-        str(random.randrange(1000, 9999))
-    ))
-    password = '_'.join((
-        random.choice(["salty", "sweet", "sour", "mild", "spicy", "juicy"]),
-        random.choice(["cookie", "pie", "beef", "soup", "salad", "porridge"])
-    ))
-
-    # In case constants.BASE_URL is used instead of --base-url option
-    # also remove tailing '/'
-    if base_url == '':
-        base_url = BASE_URL
-    base_url = base_url.rstrip('/')
-
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    session = requests.session()
-    session.headers.update(headers)
-
-    # Log in using super admin and retrieve authorized session id cookie
-    session.post(
-        f"{base_url}/admin/login.php",
-        data='login=true&redirect_url=&login=Login'
-             f'&username={SUPERADMIN_USERNAME}&password={SUPERADMIN_PASSWORD}',
-        allow_redirects=False,
-        timeout=10
+    session = api.prepare_logged_admin_session(
+        base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )
 
-    # Send API request to create new user
-    session.post(
-        f"{base_url}/admin/?app=users&doc=edit_user&page=1",
-        data=f'username={username}&email='
-             f'&password={password}&confirmed_password={password}'
-             '&date_valid_from=2023-09-20T17%3A51'
-             '&date_valid_to=2030-01-26T17%3A51&status=1&save=Save',
-        timeout=10
+    return api.create_admin_user(session, base_url)
+
+
+@allure.title("Create Geo Zone via API request")
+@pytest.fixture
+def new_geozone(base_url: str) -> GeozoneEntity:
+    """Creates new geozone using API call and return
+    geozone entity.
+
+    Also handles geozone deletion after test finished."""
+
+    geozone = helpers.generate_new_geozone_entity()
+    session = api.prepare_logged_admin_session(
+        base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )
 
-    return (username, password)
+    api.create_empty_geo_zone(session, base_url, geozone)
+
+    yield geozone
+
+    with allure.step("Sending API request to delete Geo Zone "
+                     f"with id {geozone.entity_id}"):
+        api.delete_geo_zone(session, base_url, geozone.entity_id)
+
+
+@pytest.fixture
+def handle_geozones(base_url: str):
+    """Allows to handle geozone entities deletion
+    after test finished.
+    """
+    geozones = []
+    yield geozones
+
+    geozones = [gz.entity_id
+                for gz in geozones
+                if gz.entity_id is not None]
+
+    if not geozones:
+        return
+
+    session = api.prepare_logged_admin_session(
+        base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
+    )
+    for gz_id in geozones:
+        with allure.step(
+            "Sending API request to delete Geo Zone "
+            f"with id {gz_id}"
+        ):
+            api.delete_geo_zone(session, base_url, gz_id)

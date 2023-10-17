@@ -1,5 +1,5 @@
 """Admin Page side menu"""
-
+import allure
 
 from playwright.sync_api import Page
 from utils.elements import Button
@@ -26,10 +26,12 @@ class AdminSideMenu(BaseComponent):
             "Subcategory button"
         )
 
+    @allure.step('Clicking category "{category}"')
     def click_category(self, category: str):
         """Clicks category button selected by given category enum"""
         self.category_button.click(category=category)
 
+    @allure.step('Clicking sub-category "{category}"')
     def click_sub_category(self, category: str):
         """Clicks sub-category button selected by given category enum"""
         self.subcategory_button.click(category=category)
