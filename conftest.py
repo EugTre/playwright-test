@@ -4,6 +4,7 @@ import tkinter
 
 import requests
 import pytest
+import allure
 from playwright.sync_api import Page
 
 from utils.pages import AdminLoginPage, AdminMainPage
@@ -11,6 +12,7 @@ from constants import BASE_URL, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
 
 
 def pytest_addoption(parser):
+    """Add CLI options for pytest"""
     parser.addoption("--maximize",
                      action="store_true",
                      default=False,
@@ -18,6 +20,11 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    """Configure pytest before tests execution"""
+    config.addinivalue_line("markers",
+                            "admin_category_page(name): sets name of category "
+                            "page to retrieve")
+
     window_size = None
     if config.getoption("--maximize"):
         # Dirty way to get screen size to emulate
@@ -49,6 +56,17 @@ def test_id(request):
 
 
 # --- Pages
+# --- Helper functions
+@allure.step("Login as Admin")
+def login_as_admin(page):
+    login_page = AdminLoginPage(page)
+    login_page.visit()
+    return login_page.login(
+        SUPERADMIN_USERNAME,
+        SUPERADMIN_PASSWORD
+    )
+
+
 @pytest.fixture
 def admin_login_page(maximizable_page) -> AdminLoginPage:
     """Returns Admin Login Page"""
@@ -58,15 +76,20 @@ def admin_login_page(maximizable_page) -> AdminLoginPage:
 @pytest.fixture
 def admin_main_page(maximizable_page) -> AdminMainPage:
     """Returns Admin Main Page"""
-    login_page = AdminLoginPage(maximizable_page)
-    login_page.visit()
-
-    admin_page = login_page.login(
-        SUPERADMIN_USERNAME,
-        SUPERADMIN_PASSWORD
-    )
-
+    admin_page = login_as_admin(maximizable_page)
     return admin_page
+
+
+@pytest.fixture
+def admin_category_page(request, maximizable_page) -> AdminMainPage:
+    """Returns Admin Category Page speciied by 'admin_category_page' marker
+    of the test"""
+    category = request.node.get_closest_marker('admin_category_page').args[0]
+    print(category)
+    admin_page = login_as_admin(maximizable_page)
+    category_page = admin_page.change_category(category)
+
+    return category_page
 
 
 # --- Data generation

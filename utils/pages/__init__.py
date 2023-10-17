@@ -1,3 +1,5 @@
+"""Module with collection of classes that represent pages"""
+# flake8: noqa
 from .admin_login_page import AdminLoginPage
 from .admin_main_page import AdminMainPage
 from .admin_basic_category_page import AdminBasicCategoryPage

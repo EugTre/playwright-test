@@ -1,4 +1,4 @@
-
+"""Useful data representation classes"""
 from enum import Enum
 
 from utils.pages import (
