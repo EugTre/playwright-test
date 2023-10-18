@@ -2,11 +2,11 @@
 import allure
 from playwright.sync_api import Page
 from utils.models.admin_geozone import GeozoneEntity
-from utils.elements import Input, Button, Select
+from utils.elements import Input, Button, Select, Table
 from .admin_basic_category_page import AdminBasicCategoryPage
 
 
-class AdminGeozonesFormPage(AdminBasicCategoryPage):
+class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
     """Admin -> Geo Zones page"""
 
     def __init__(self, page: Page) -> None:
@@ -23,33 +23,38 @@ class AdminGeozonesFormPage(AdminBasicCategoryPage):
 
         self.code_field = Input(
             page, "#content form input[name='code']",
-            "Code field"
+            "Code"
         )
         self.name_field = Input(
             page, "#content form input[name='name']",
-            "Name field"
+            "Name"
         )
         self.desc_field = Input(
             page, "#content form input[name='description']",
-            "Description field"
+            "Description"
         )
 
         self.zone_country_select = Select(
             page, "#content form select[name*='country_code']",
-            "Zones/Country dropdown"
+            "Zones/Country"
         )
         self.zone_zones_field = Input(
             page, "#content form select[name*='zone_code']",
-            "Zones/Zones field"
+            "Zones/Zones"
         )
         self.zone_city_field = Input(
             page, "#content form input[name='new_zone[city]']",
-            "Zones/City field"
+            "Zones/City"
         )
 
         self.zone_add_button = Button(
             page, "#content form button[name='add']",
-            "Add"
+            "Zones/Add"
+        )
+
+        self.zone_table = Table(
+            page, "#content form table",
+            "Zones"
         )
 
     @property

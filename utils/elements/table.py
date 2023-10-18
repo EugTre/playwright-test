@@ -1,5 +1,4 @@
 """List item element"""
-
 import allure
 from playwright.sync_api import Locator, expect
 
@@ -44,7 +43,36 @@ class Table(BaseElement):
                 for j in columns:
                     row_data.append(rows_content[i+j])
 
-            output.append(row_data)
+            output.append([line.strip() for line in row_data])
+
+        return output
+
+    def evaluate_on_nested_elements(
+        self, nested_locator: str, callback: str,
+        **locator_qualifiers
+    ) -> list[tuple[Locator]]:
+        """Executes given JS code at each element found by
+        given locator and returns result of the function
+        callback.
+
+        Args:
+            nested_locator (str): locator inside table body's
+            cell (<td>).
+            callback (str): Javascript function to execute.
+
+        Returns:
+            list[tuple[Locator]]: _description_
+        """
+
+        table = self.get_locator(**locator_qualifiers)
+        rows_count = table.locator('tbody tr').count()
+        output = []
+
+        for row_idx in range(rows_count):
+            row_result = table.locator(
+                f'tbody tr:nth-child({row_idx+1}) > td > {nested_locator}'
+            ).evaluate_all(callback)
+            output.append(row_result)
 
         return output
 
@@ -54,6 +82,13 @@ class Table(BaseElement):
         with allure.step(f'{self.type_of.capitalize()} should have '
                          f'{size} items'):
             expect(rows).to_have_count(size)
+
+    def shold_be_empty(self, **locator_qualifiers) -> None:
+        """Checks that table is empty"""
+        tbody = self.get_locator(**locator_qualifiers).locator('tbody')
+        with allure.step(f'{self.type_of.capitalize()} should have '
+                         'no items'):
+            expect(tbody).to_be_empty()
 
     def shold_not_be_empty(self, **locator_qualifiers) -> None:
         """Checks that table is not empty"""

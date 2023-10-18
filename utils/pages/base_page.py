@@ -62,11 +62,12 @@ class BasePage(ABC):
 
         return response
 
-    @allure.step('Reloading page {self.page.url}')
     def reload(self) -> Response | None:
         """Reloads current page.
 
         Returns:
             Response | None: result of get request to page URL.
         """
-        return self.page.reload(wait_until="domcontentloaded")
+
+        with allure.step(f'Reloading page {self.page.url}'):
+            self.page.reload(wait_until="domcontentloaded")

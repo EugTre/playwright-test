@@ -33,13 +33,15 @@ def order_by_rules(items: list, ruleset: list, reverse: bool = False) -> list:
     sorted_items = copy(items)
 
     for find_what, replace_with in ruleset:
-        idx = sorted_items.index(find_what)
-        sorted_items[idx] = replace_with
+        if find_what in sorted_items:
+            idx = sorted_items.index(find_what)
+            sorted_items[idx] = replace_with
 
     sorted_items.sort(reverse=reverse)
     for replace_with, find_what in ruleset:
-        idx = sorted_items.index(find_what)
-        sorted_items[idx] = replace_with
+        if find_what in sorted_items:
+            idx = sorted_items.index(find_what)
+            sorted_items[idx] = replace_with
 
     return sorted_items
 

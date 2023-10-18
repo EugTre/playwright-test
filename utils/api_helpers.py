@@ -62,16 +62,38 @@ def create_admin_user(session: requests.Session,
     return (username, password)
 
 
-def create_empty_geo_zone(session: requests.Session, base_url: str,
-                          geozone: GeozoneEntity) -> None:
+def geozone_entity_to_body(geozone: GeozoneEntity):
+    """Returns entity data in form of API request body"""
+    output = {
+        "code": geozone.code,
+        "name": geozone.name,
+        "description": geozone.description,
+        "new_zone[id]": "",
+        "new_zone[country_code]": "",
+        "new_zone[zone_code]": "",
+        "new_zone[city]": "",
+        "save": "Save"
+    }
+
+    if not geozone.zones:
+        return output
+
+    for idx, zone in enumerate(geozone.zones):
+        output[f"zones[new_{idx}][id]"] = ""
+        output[f"zones[new_{idx}][country_code]"] = \
+            zone.value if zone.value else ""
+        output[f"zones[new_{idx}][zone_code]"] = ""
+        output[f"zones[new_{idx}][city]"] = zone.city
+
+    return output
+
+
+def create_geo_zone(session: requests.Session, base_url: str,
+                    geozone: GeozoneEntity) -> None:
     """API request to create new geozone with given geozone.code, geozone.name
-    and geozone.desc, but with no countries attached"""
-    body = (
-        f'code={geozone.code}&name={geozone.name}'
-        f'&description={geozone.description}'
-        '&new_zone%5Bid%5D=&new_zone%5Bcountry_code%5D=&new_zone%5Bcity%5D='
-        '&save=Save'
-    )
+    and geozone.desc, and list of countries"""
+
+    body = geozone_entity_to_body(geozone)
     headers = {
         "Referer": f"{base_url}/admin/?app=geo_zones&doc=edit_geo_zone&page=1",
         "Upgrade-Insecure-Requests": "1"
@@ -99,7 +121,15 @@ def delete_geo_zone(session: requests.Session, base_url: str,
     session.post(
         f"{base_url}/admin/?app=geo_zones&doc=edit_geo_zone&page=1"
         f"&geo_zone_id={geozone_id}",
-        data='code=&name=&description=&new_zone%5Bid%5D=&new_zone%5B'
-             'country_code%5D=&new_zone%5Bcity%5D=&delete=Delete',
+        data={
+            "code": "",
+            "name": "",
+            "description": "",
+            "new_zone[id]": "",
+            "new_zone[country_code]": "",
+            "new_zone[zone_code]": "",
+            "new_zone[city]": "",
+            "delete": "Delete"
+        },
         timeout=10
     )

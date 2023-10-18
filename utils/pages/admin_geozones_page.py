@@ -4,7 +4,8 @@ import allure
 from playwright.sync_api import Page
 from utils.elements import Button, Table, Banner
 from .admin_basic_category_page import AdminBasicCategoryPage
-from .admin_geozones_form_page import AdminGeozonesFormPage
+from .admin_geozones_add_form_page import AdminGeozonesAddFormPage
+from .admin_geozones_edit_form_page import AdminGeozonesEditFormPage
 
 
 class AdminGeozonesPage(AdminBasicCategoryPage):
@@ -14,16 +15,21 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
 
         self.create_new_button = Button(
             page, '#main #content .card-action a',
-            "Create New Zone button"
+            "Create New Geo Zone"
         )
 
         self.notification_banner = Banner(
-            page, ".alert-success", "Notification banner"
+            page, ".alert-success", "Notification"
         )
 
         self.geozones_table = Table(
             page, "#content form table",
-            "Geozone table"
+            "Geozones"
+        )
+
+        self.geozone_edit_button = Button(
+            page, "#content form tbody tr:nth-child({row}) a.btn",
+            "Edit"
         )
 
     @property
@@ -38,23 +44,65 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
     def breadcrumbs(self):
         return ('Geo Zones', )
 
-    def get_geozone_info_by_name(self, name: str) -> tuple[str, str, str]:
-        """Returns geozone row data (id (str), name(str), number of zones(str))
-        from row with given name in geozones table."""
+    def find_geozone(self, name: str = None, entity_id: str = None
+                     ) -> tuple[int, str, str, int]:
+        """Returns geozone row index and data (id, name, zones counter)
+        for row with given name in geozones table.
+
+        Args (exclusive):
+            name (str, optional): name to search for. Defaults to None..
+            entity_id (str, optional). ID to search for. Defaults to None.
+
+        Returns:
+            tuple in format
+            (row_idx: int, entity_id: str, name: str, zones_count: int)"""
+        if name is None and entity_id is None:
+            raise ValueError(
+                "Geozone identifier is not given ('name' or 'entity_id')!"
+            )
+
+        if entity_id is not None:
+            target_value = entity_id
+            target_column = 1
+        else:
+            target_value = name
+            target_column = 2
+
         rows = self.geozones_table.get_rows_content()
-        for row in rows:
-            if row[2] == name:
-                return row[1], row[2], int(row[3])
+        for row_idx, row in enumerate(rows):
+            if row[target_column] == target_value:
+                return row_idx, row[1], row[2], int(row[3])
 
         raise ValueError(
             f"There is no row with 'Name' = {name} in the Geo Zones table!"
         )
 
-    def click_create_new_geozone(self):
+    def create_new_geozone(self) -> AdminGeozonesAddFormPage:
         """Clicks Create New Geozone button and
         returns Geozone Form page"""
         self.create_new_button.click()
-        return AdminGeozonesFormPage(self.page)
+        return AdminGeozonesAddFormPage(self.page)
+
+    def edit_geozone(self,
+                     name: str = None,
+                     entity_id: str = None,
+                     row_id: str | None = None,
+                     ) -> AdminGeozonesEditFormPage:
+        """Clickes Edit button for selected geozone (by id or by name)"""
+        if name is None and entity_id is None and row_id is None:
+            raise ValueError(
+                "Geozone identifier is not given ('name' or 'entity_id')!"
+            )
+
+        if row_id and entity_id:
+            self.geozone_edit_button.click(row=row_id + 1)
+            return AdminGeozonesEditFormPage(self.page, entity_id)
+
+        row_id, found_entity_id, _, _ = self.find_geozone(name)
+
+        # Shift +1 from 0-based index of py-array to 1-based of css selector
+        self.geozone_edit_button.click(row=row_id + 1)
+        return AdminGeozonesEditFormPage(self.page, found_entity_id)
 
     # --- Assertions
     @allure.step("Check geozone table is not empty")
