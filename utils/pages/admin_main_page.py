@@ -35,13 +35,7 @@ class AdminMainPage(BasePage):
     def change_category(self, category: 'AdminCategory') -> BasePage:
         """Selects and clicks category item in side menu, and
         returns instance of basic category page (unspecified)"""
-        category_id, subcategory_id, page_cls = category.value
-
-        self.side_menu.click_category(category_id)
-        if subcategory_id is not None:
-            self.side_menu.click_sub_category(subcategory_id)
-
-        return page_cls(self.page)
+        return self.side_menu.change_category(category)
 
     # --- Custom assertions
     @allure.step("Check that notification banner is displayed "

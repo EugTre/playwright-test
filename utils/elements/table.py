@@ -16,6 +16,10 @@ class Table(BaseElement):
         table = self.get_locator(**locator_qualifiers)
         return table.locator('tbody tr')
 
+    def count(self, **locator_qualifiers) -> int:
+        """Returns number of rows in the table body"""
+        return self.get_rows(**locator_qualifiers).count()
+
     def get_rows_content(self,
                          columns: list[int] | tuple[int] | None = None,
                          **locator_qualifiers) -> list[tuple[str]]:

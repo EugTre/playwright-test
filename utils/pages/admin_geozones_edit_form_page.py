@@ -1,7 +1,7 @@
 """Admin -> Geo Zones page"""
 import allure
 from playwright.sync_api import Page, expect
-from utils.models.admin_geozone import GeozoneEntity
+from utils.models.admin_geozone import GeozoneEntity, CountryZoneEntity
 from utils.elements import Button
 from .admin_geozones_add_form_page import AdminGeozonesAddFormPage
 
@@ -35,9 +35,45 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
         super()._verify_page_items()
         self.delete_button.should_be_visible()
 
-    def get_added_countries_names(self):
-        """Returns list of added countries from table"""
-        return self.zone_table.get_rows_content(columns=(1,))
+    def find_zone(self, zone: CountryZoneEntity, update_id: bool = False
+                  ) -> tuple[int, int, str, str, str]:
+        """Looks for zone in Zones table and selecting one with
+        matching Country and Town values (or by zone_id if known)
+
+        Args:
+            zone (CountryZoneEntity): zone to find.
+            update_id (bool, optional): flag to update given zone instance
+            with found ID. Defaults to False.
+
+        Raises:
+            ValueError: on missing zone.
+
+        Returns:
+            tuple[int, int, str, str, str]: row_id, zone ID, country code,
+            zone and city values from the row of found zone
+        """
+        table_values = self.get_added_zones_values()
+        for row_idx, row_value in enumerate(table_values):
+            zone_id, zone_name, zone_zone, zone_city, _ = row_value
+
+            if any((
+                zone.zone_id and zone.zone_id == zone_id,
+                zone.value == zone_name and zone.city == zone_city
+            )):
+                if update_id:
+                    zone.zone_id = zone_id
+
+                return row_idx, int(zone_id), zone_name, zone_zone, zone_city
+
+        raise ValueError(f"Failed to find Zone={zone} in table!")
+
+    @allure.step("Deleting Geozone")
+    def delete(self, confirm: bool = False):
+        """Clicks 'Delete' button and optionally confirms in promt."""
+        if confirm:
+            self.page.on("dialog", lambda dialog: dialog.accept())
+
+        self.delete_button.click()
 
     # --- Assertions
     @allure.step("Check that page URL contains geo zone ID")
@@ -60,10 +96,7 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
             return
 
         rows_text = self.zone_table.get_rows_content((0, 1, 2, 3))
-        rows_data = self.zone_table.evaluate_on_nested_elements(
-            nested_locator="input[type='hidden']",
-            callback="nodes => Array.prototype.map.call(nodes, e => e.value)"
-        )
+        rows_data = self.get_added_zones_values()
         rows_content = list(zip(rows_text, rows_data))
 
         for expected_zone in geozone.zones:
@@ -73,28 +106,24 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
                  "matches to expected")
     def __validate_country_zone_entry(self, rows_content, zone_entity):
         zone = zone_entity.value
+        city = zone_entity.city
 
         for texts, values in rows_content:
-            if zone != values[1]:
+            id_value, country_value, _, city_value = values
+
+            if zone != country_value or city != city_value:
                 continue
 
             id_text, country_text, _, city_text = texts
-            id_value, _, _, city_value = values
-
-            with allure.step("Values match to expected"):
-                assert zone_entity.city == city_value, \
-                    '"City" value mismatch '\
-                    f'for {zone} zone!'
-
             with allure.step("Values are displayed"):
-                assert id_value, \
-                    f'"ID" value is empty for {zone} zone!'
                 assert id_text, \
                     '"ID" displayed value is empty ' \
                     f'for {zone} zone!'
                 assert country_text, \
                     '"Country" displayed value is empty ' \
                     f'for {zone} zone!'
+                assert city_text, \
+                    f'"City" displayed value is empty for {zone} zone!'
 
             with allure.step("Displayed values match to actual values"):
                 assert id_value == id_text, \
@@ -110,5 +139,6 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
         available_str = '\n'.join([
             f'   {str(value)}' for _, value in rows_content
         ])
-        assert False, f'Zone "{zone}" is missing in the table! ' \
-            f'Zones available: \n{available_str}'
+        assert False, \
+            f'Zone "{zone}" (city: {city}) is missing in the table! ' \
+            f'Available items: \n{available_str}'

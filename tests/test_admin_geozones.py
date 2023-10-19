@@ -9,7 +9,7 @@ import allure
 from utils import helpers
 from utils.text_repository import messages
 from utils.models.admin_categories import AdminCategory
-from utils.models.admin_geozone import GeozoneEntity
+from utils.models.admin_geozone import GeozoneEntity, CountryZoneEntity
 from utils.pages import (
     AdminGeozonesPage,
     AdminGeozonesAddFormPage,
@@ -91,7 +91,7 @@ class TestAdminCategoriesGeozones:
         with then("created geo zone is in the list, have valid name "
                   "and number of zones"):
             _, entity_id, _, number_of_zones = \
-                admin_category_page.find_geozone(geozone.name)
+                admin_category_page.find_geozone(geozone)
             handle_geozones.append(entity_id)
 
             assert number_of_zones == len(geozone.zones), \
@@ -99,7 +99,7 @@ class TestAdminCategoriesGeozones:
                 f'Geozone "{geozone.name}"'
 
         with then("user sees success 'Changes saved' banner"):
-            admin_category_page.banner_appeared_with_text(
+            admin_category_page.banner_should_have_text(
                 messages.get('Admin.Geozones OnCreateSuccess')
             )
 
@@ -115,25 +115,17 @@ class TestAdminCategoriesGeozones:
             admin_category_page.reload()
 
         with given("there is created Geozone entity in the table"):
-            row_idx, geozone_id, geozone_name, zones_count = \
-                admin_category_page.find_geozone(new_geozone.name)
-            new_geozone.entity_id = geozone_id
+            row_idx, _, _, _ = \
+                admin_category_page.find_geozone(new_geozone, True)
 
             allure.attach(str(new_geozone), "Geozone Entity",
                           allure.attachment_type.TEXT)
-
-            allure.attach(
-                f"Row {row_idx}: ID={geozone_id}, Name={geozone_name}, "
-                f"Zones={zones_count}",
-                "Found Table Entry",
-                allure.attachment_type.TEXT
-            )
 
         with when("user clicks Edit button for entity"):
             edit_form: AdminGeozonesEditFormPage = \
                 admin_category_page.edit_geozone(
                     row_id=row_idx,
-                    entity_id=geozone_id
+                    geozone=new_geozone
                 )
 
         with then("user is navigated to Edit Geo Zone form"):
@@ -152,67 +144,95 @@ class TestAdminCategoriesGeozones:
             assert names == sorted_names, \
                 "Countries in the dropdown are not A-Z ordered!"
 
+    @allure.title("Existing Geo Zone may be edited")
+    @pytest.mark.admin_category_page(AdminCategory.GEOZONES)
+    @pytest.mark.new_geozone_options(add_countries=('US', 'KZ', 'BE', 'FR'))
+    def test_edit(self, admin_category_page: AdminGeozonesPage,
+                  new_geozone: GeozoneEntity):
+        """Tests that existing geozone may be updated through UI:
+        - change CODE, NAME and DESCRIPTION
+        - remove ZONE added zone
+        - add new ZONE"""
 
-    # @allure.title("Existing Geo Zone may be edited")
-    # @pytest.mark.admin_category_page(AdminCategory.GEOZONES)
-    # def test_edit(self, admin_category_page: AdminGeozonesPage,
-    #                 created_geozone):
-    #     with given("logged admin user is at Geo Zones page"):
-    #         pass
-    #     with given(f"there is Geozone entity in the table: {created_geozone}"):
-    #         pass
-    #     with when("user clicks Edit button for entity and navigated to Edit form"):
-    #         pass
-    #     with when("user is updates data in form and saves it"):
-    #         pass
-    #     with then("user is navigated to Geozone page"):
-    #         pass
-    #     with then("added countries zones are A-Z ordered"):
-    #         pass
-    #     with then("edited geo zone displayed with new name and number of zones"):
-    #         entity_id, _, number_of_zones = \
-    #             admin_category_page.get_geozone_info_by_name(geozone.name)
+        with given("logged admin user is at Geo Zones page"):
+            admin_category_page.reload()
 
-    #         geozone.entity_id = entity_id
-    #         handle_geozones.append(entity_id)
+        with given("there is created Geozone entity in the table"):
+            admin_category_page.find_geozone(new_geozone, True)
 
-    #         assert number_of_zones == len(geozone.zones), \
-    #             'Invalid number of Zones for newly created ' \
-    #             f'Geozone "{geozone.name}"'
+            allure.attach(str(new_geozone), "Geozone Entity",
+                          allure.attachment_type.TEXT)
 
-    #     with then("user sees success 'Changes saved' banner"):
-    #         admin_category_page.banner_appeared_with_text(
-    #             messages.get('Admin.Geozones OnCreateSuccess')
-    #         )
+        with when("user clicks Edit button for entity and opens Edit form"):
+            edit_form: AdminGeozonesEditFormPage = \
+                admin_category_page.edit_geozone(new_geozone)
+            edit_form.verify_page()
 
-    #     with then("user can Edit zone again and see new values in Form"):
-    #         admin_category_page.banner_appeared_with_text(
-    #             messages.get('Admin.Geozones OnCreateSuccess')
-    #         )
+        with when("user is updates data in form and saves it"):
+            # Change zone data, and re-populate form
+            new_geozone.code = 'XTEST'
+            new_geozone.description = 'New Description'
+            new_geozone.name = 'XXX-edited-zone-name'
+            new_geozone.zones = [
+                CountryZoneEntity(value="AM", city="TownA"),
+                CountryZoneEntity(value="AM", city="TownB")
+            ]
 
-    # # TBD:
-    # @allure.title("Existing Geo Zone may be deleted")
-    # @pytest.mark.admin_category_page(AdminCategory.GEOZONES)
-    # def test_delete(self, admin_category_page: AdminGeozonesPage,
-    #                 created_geozone: str):
-    #     """Tests it is possible to create new Geo Zone at
-    #     Admin -> Geo Zones section"""
+            edit_form.remove_zones()
+            edit_form.fill_from_entity(new_geozone)
 
-    #     with given("logged in admin user is at Geo Zones page"):
-    #         pass
+            edit_form.save()
 
-    #     with given("there is at least one Geo Zone exists"):
-    #         pass
+        with then("user is navigated to Geozone page"):
+            admin_category_page.verify_page()
 
-    #     with when("user clicks 'Edit' button for existing Geo Zone"):
-    #         ...
+        with then("edited name and number of zones is displayed for zone"):
+            admin_category_page.geozone_metadata_should_match(
+                new_geozone
+            )
 
-    #     with when("user selects Delete and confirms deletion"):
-    #         ...
+        with then("user sees success 'Changes saved' banner"):
+            admin_category_page.banner_should_have_text(
+                messages.get('Admin.Geozones OnCreateSuccess')
+            )
 
-    #     with then("user become redirected to Geo Zones pages and "
-    #               "sees success 'Changes saved' banner"):
-    #         ...
+        with then("user can Edit zone again and see new values in Form"):
+            edit_form = admin_category_page.edit_geozone(new_geozone)
+            edit_form.data_should_match_to(new_geozone)
 
-    #     with then("delete Geo Zone is not listed in table"):
-    #         ...
+    @allure.title("Existing Geo Zone may be deleted")
+    @pytest.mark.admin_category_page(AdminCategory.GEOZONES)
+    @pytest.mark.new_geozone_options(add_countries=('KZ', 'FR'))
+    def test_delete(self, admin_category_page: AdminGeozonesPage,
+                    new_geozone: GeozoneEntity):
+        """Tests it is possible to create new Geo Zone at
+        Admin -> Geo Zones section"""
+
+        with given("logged in admin user is at Geo Zones page"):
+            admin_category_page.reload()
+
+        with given("there is created Geozone entity in the table"):
+            admin_category_page.find_geozone(new_geozone, True)
+
+        with when("user clicks 'Edit' button for existing Geo Zone"):
+            edit_page: AdminGeozonesEditFormPage = \
+                admin_category_page.edit_geozone(new_geozone)
+
+        with when("user is navigated to Edit Geo Zone page"):
+            edit_page.verify_page()
+
+        with when("user selects Delete and confirms deletion"):
+            edit_page.delete(confirm=True)
+
+        with then("user is redirected to Geo Zones page"):
+            admin_category_page.verify_page()
+
+        with then("user sees success 'Changes saved' banner"):
+            admin_category_page.banner_should_have_text(
+                messages.get('Admin.Geozones OnCreateSuccess')
+            )
+
+        with then("deleted Geo Zone is not listed in table"):
+            admin_category_page.geozone_should_be_missing(
+                new_geozone
+            )

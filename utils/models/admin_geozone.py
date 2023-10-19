@@ -1,4 +1,4 @@
-
+"""Models of entites for Admin -> GeoZones page"""
 from dataclasses import dataclass
 
 
@@ -6,8 +6,8 @@ from dataclasses import dataclass
 class CountryZoneEntity:
     """Represents Zone sub-enity of Geo Zone entity
     at Admin / Geo Zones page"""
-    zone_id: str | None
     value: str | None
+    zone_id: str | None = None
     city: str = ""
 
 

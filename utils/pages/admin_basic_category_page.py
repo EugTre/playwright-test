@@ -1,12 +1,17 @@
 """Admin category page (unspecified)"""
+from typing import TYPE_CHECKING
 
 from playwright.sync_api import Page
 from utils.elements import Title
 from utils.components import AdminSideMenu, AdminTopMenu
-from .admin_main_page import AdminMainPage
+from .base_page import BasePage
 
 
-class AdminBasicCategoryPage(AdminMainPage):
+if TYPE_CHECKING:
+    from utils.models.admin_categories import AdminCategory
+
+
+class AdminBasicCategoryPage(BasePage):
     """Admin category page (basic).
     Supports only minumal number of common elements.
     Use specific category pages for advanced use."""
@@ -18,7 +23,6 @@ class AdminBasicCategoryPage(AdminMainPage):
             page, "#main #content .card-title",
             "Title of the category"
         )
-
         self.top_menu = AdminTopMenu(page)
         self.side_menu = AdminSideMenu(page)
 
@@ -41,6 +45,12 @@ class AdminBasicCategoryPage(AdminMainPage):
         self.side_menu.should_be_visible()
         self.top_menu.should_be_visible()
         self.header_title.should_be_visible()
+
+    # --- Actions
+    def change_category(self, category: 'AdminCategory') -> BasePage:
+        """Selects and clicks category item in side menu, and
+        returns instance of basic category page (unspecified)"""
+        return self.side_menu.change_category(category)
 
     # --- Assertions
     def header_text_should_match(self, header: str | None = None):

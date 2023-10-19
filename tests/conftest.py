@@ -1,4 +1,6 @@
 """Fixtures related to tests"""
+import logging
+
 import pytest
 import allure
 import utils.api_helpers as api
@@ -66,7 +68,10 @@ def new_admin_user(base_url: str) -> tuple[str, str]:
         base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )
 
-    return api.create_admin_user(session, base_url)
+    user = api.create_admin_user(session, base_url)
+    logging.info('Created New Admin user for test: %s', user)
+
+    return user
 
 
 @allure.title("Create Geo Zone via API request")
@@ -80,16 +85,16 @@ def new_geozone(request, base_url: str) -> GeozoneEntity:
     options = request.node.get_closest_marker('new_geozone_options').kwargs
     countries = options.get('add_countries', None)
     geozone = helpers.generate_new_geozone_entity(countries)
+
+    logging.info('Created Geozone for test: %s', geozone)
+
     session = api.prepare_logged_admin_session(
         base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )
-
-    if countries:
-        api.create_geo_zone(session, base_url, geozone)
-    else:
-        api.create_geo_zone(session, base_url, geozone)
+    api.create_geo_zone(session, base_url, geozone)
 
     yield geozone
+    logging.info('Removing Geozone created for test: %s', geozone)
 
     with allure.step("Sending API request to delete Geo Zone "
                      f"with id {geozone.entity_id}"):
@@ -109,6 +114,7 @@ def handle_geozones(base_url: str):
     if not geozones:
         return
 
+    logging.info('Removing Geozones created for test: %s', geozones)
     session = api.prepare_logged_admin_session(
         base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )
