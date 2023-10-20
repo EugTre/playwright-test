@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from utils.models.admin_categories import AdminCategory
 
 
+
 class AdminSideMenu(BaseComponent):
     """Side menu at admin pages.
     Contains list of categories Logo and list of category buttons
@@ -32,16 +33,25 @@ class AdminSideMenu(BaseComponent):
             "Subcategory button"
         )
 
+    @property
+    def name(self):
+        return "Side Menu"
+
     @allure.step('Switching category using side menu')
     def change_category(self, category: 'AdminCategory'):
         """Performs series of cliks needed to change category page"""
+        self.log('Swithing category in side menu to %s', category)
+
         category_id, subcategory_id, page_cls = category.value
 
         self.click_category(category_id)
         if subcategory_id is not None:
             self.click_sub_category(subcategory_id)
 
-        return page_cls(self.page)
+        new_page = page_cls(self.page)
+        self.log('Category switched, new page is %s', new_page.name)
+
+        return new_page
 
     @allure.step('Clicking category "{category}"')
     def click_category(self, category: str):
@@ -54,4 +64,5 @@ class AdminSideMenu(BaseComponent):
         self.subcategory_button.click(category=category)
 
     def should_be_visible(self):
+        self.log('Check that component is visible')
         self.logo_button.should_be_visible()

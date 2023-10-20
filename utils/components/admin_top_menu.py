@@ -20,7 +20,13 @@ class AdminTopMenu(BaseComponent):
             "Breadcrumbs items"
         )
 
+    @property
+    def name(self):
+        return "Top Menu"
+
     def should_be_visible(self):
+        self.log('Check that component is visible')
+
         self.log_out_button.should_be_visible()
         self.frontend_button.should_be_visible()
 
@@ -31,4 +37,5 @@ class AdminTopMenu(BaseComponent):
         Given names will be prepended with default nodes ('Dasboard')
         automatically.
         """
+        self.log("Check breadcrumbs at top menu to contain %s", items)
         self.breadcrumbs.should_have_items(['Dashboard', *items])

@@ -1,11 +1,11 @@
 """Admin -> Geo Zones page"""
-import logging
+from logging import DEBUG
 
 import pytest
 import allure
 
 from playwright.sync_api import Page
-from utils.elements import Button, Table, Banner
+from utils.elements import Button, Table, Label
 from utils.models.admin_geozone import GeozoneEntity
 from .admin_basic_category_page import AdminBasicCategoryPage
 from .admin_geozones_add_form_page import AdminGeozonesAddFormPage
@@ -22,7 +22,7 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
             "Create New Geo Zone"
         )
 
-        self.notification_banner = Banner(
+        self.notification_banner = Label(
             page, ".alert-success", "Notification"
         )
 
@@ -39,6 +39,10 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
     @property
     def url(self):
         return "/admin/?app=geo_zones&doc=geo_zones"
+
+    @property
+    def name(self):
+        return "Admin/Geo Zones"
 
     @property
     def header(self):
@@ -76,8 +80,9 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
         target_name = geozone.name
         target_id = geozone.entity_id
         target_count = len(geozone.zones)
-        logging.info("Looking for Geozones like: name=%s id=%s count=%s",
-                     target_name, target_id, target_count)
+        self.log("Looking for Geozones like: "
+                 "name=%s id=%s count=%s",
+                 target_name, target_id, target_count)
 
         rows = self.geozones_table.get_rows_content()
         for row_idx, row in enumerate(rows):
@@ -85,8 +90,8 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
             row_zone_name = row[2]
             row_zone_count = int(row[3])
 
-            logging.debug("Checking row %s: %s", row_idx, row)
-
+            self.log("Checking row %s: %s", row_idx, row,
+                     level=DEBUG)
             if all((
                 not target_name or target_name == row_zone_name,
                 not target_id or target_id == row_zone_id,
@@ -102,9 +107,9 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
                 if update_entity_id:
                     geozone.entity_id = row_zone_id
 
-                logging.info(
+                self.log(
                     'Found GeoZone at row %s: id=%s name=%s count=%s',
-                    row_idx, row_zone_id, row_zone_name, row_zone_count
+                    row_idx, row_zone_id, row_zone_name, row_zone_count,
                 )
 
                 return row_idx, row_zone_id, row_zone_name, row_zone_count

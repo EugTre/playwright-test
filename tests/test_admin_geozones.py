@@ -51,13 +51,16 @@ class TestAdminCategoriesGeozones:
 
         with then("country list ordering is ascending with special rules"):
             options = form.get_country_option_names()
-            sorted_options = helpers.order_by_rules(
+            helpers.compare_ordering(
                 options,
-                COUNTRIES_ORDERING_RULES
+                COUNTRIES_ORDERING_RULES,
+                "Countries in the dropdown are not A-Z ordered!"
             )
 
-            assert options == sorted_options, \
-                "Countries in the dropdown are not A-Z ordered!"
+        with then("clicking 'Cancel' returns user to Countries page"):
+            form.cancel()
+            admin_category_page.verify_page()
+
 
     @allure.title("New Geo Zone may be created")
     @pytest.mark.admin_category_page(AdminCategory.GEOZONES)
@@ -136,13 +139,12 @@ class TestAdminCategoriesGeozones:
             edit_form.data_should_match_to(new_geozone)
 
         with then("added countries are ordered ascending with special rules"):
-            names = edit_form.get_added_countries_names()
-            sorted_names = helpers.order_by_rules(
-                names,
-                COUNTRIES_ORDERING_RULES
-            )
-            assert names == sorted_names, \
+            countries = edit_form.get_added_countries_names()
+            helpers.compare_ordering(
+                countries,
+                COUNTRIES_ORDERING_RULES,
                 "Countries in the dropdown are not A-Z ordered!"
+            )
 
     @allure.title("Existing Geo Zone may be edited")
     @pytest.mark.admin_category_page(AdminCategory.GEOZONES)

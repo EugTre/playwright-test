@@ -1,4 +1,6 @@
-"""Admin -> Geo Zones page"""
+"""Admin -> Geo Zones -> Create New Geo Zone page"""
+from logging import DEBUG
+
 import allure
 from playwright.sync_api import Page
 from utils.models.admin_geozone import GeozoneEntity, CountryZoneEntity
@@ -65,8 +67,12 @@ class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
         return "/admin/?app=geo_zones&doc=edit_geo_zone&page=1"
 
     @property
+    def name(self):
+        return "Admin/Geozone/AddForm"
+
+    @property
     def header(self):
-        return " Create New Geo Zone"
+        return "Create New Geo Zone"
 
     @property
     def breadcrumbs(self):
@@ -97,10 +103,18 @@ class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
             callback="nodes => Array.prototype.map.call(nodes, e => e.value)"
         )
 
+    # --- Actions
+    @allure.step("Cancel form")
+    def cancel(self):
+        """Click Cancel button"""
+        self.log("Exiting form by 'Cancel' button")
+        self.cancel_button.click()
+
     @allure.step("Populate 'Create New Geo Zone' form with entity data")
     def fill_from_entity(self, entity: GeozoneEntity) -> None:
         """Fill form fields using given Geozone entity as
         a value"""
+        self.log('Populating Create New Geo Zone form with %s', entity)
         self.code_field.click_and_fill(entity.code)
         self.name_field.click_and_fill(entity.name)
         self.desc_field.click_and_fill(entity.description)
@@ -115,6 +129,8 @@ class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
                 self.zone_city_field.click_and_fill(zone.city)
                 self.zone_add_button.click()
 
+        self.log('Form populated')
+
     @allure.step("Removing zones from table")
     def remove_zones(self, *zones: CountryZoneEntity) -> None:
         """Clicks 'Delete zone' button for selected zones.
@@ -123,6 +139,9 @@ class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
             *zones (CountryZoneEntity, optional): list of zones
             to find and delete. If non given - all zones will be deleted.
         """
+        self.log('Removing %s zone from Zones table', len(zones))
+        self.log('Zones to remove: %s', zones, level=DEBUG)
+
         if not zones:
             with allure.step('Removing all zones'):
                 rows_count = self.zone_table.count()
@@ -144,12 +163,14 @@ class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
                     removed = True
 
             if not removed:
+                self.log('Failed to find zone %s to remove', zone)
                 with allure.step(f"Failed to find {zone} in the table"):
                     pass
 
     @allure.step('Save form')
     def save(self) -> None:
         """Clicks save button at form"""
+        self.log('Clicking "Save" button on form')
         self.save_button.click()
 
     # --- Assertions
@@ -158,4 +179,7 @@ class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
     def country_options_size_should_be(self, size: int) -> None:
         """Counts number of options in Country dropdown
         (excluding "-- Select --")"""
+
+        self.log('Check that %s countries options are available '
+                 'in dropdown (not including "-- Select --" option)', size)
         self.zone_country_select.should_have_size_of(size + 1)

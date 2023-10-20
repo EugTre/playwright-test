@@ -17,18 +17,19 @@ def mask_string_value(value: str) -> str:
     return f'****{value}'
 
 
-def order_by_rules(items: list, ruleset: list, reverse: bool = False) -> list:
-    """Sorts given list applying specific replacement rules.
+def compare_ordering(items: list, ruleset: list, assert_msg: str):
+    """Sorts given list applying specific replacement rules,
+    then checks that sorted and original lists are identical.
 
     Args:
         items (list): list of items to sort.
         ruleset (list): list of pairs original value -
         equivalent for sorting.
-        reverse (bool, optional): use reveresd sorting order.
-        Defaults to False.
+        assert_msg (str): assertion message.
 
-    Returns:
-        list: sorted list.
+    Raises:
+        AssertionError: if order of items was changed
+        after sorting.
     """
     sorted_items = copy(items)
 
@@ -37,13 +38,13 @@ def order_by_rules(items: list, ruleset: list, reverse: bool = False) -> list:
             idx = sorted_items.index(find_what)
             sorted_items[idx] = replace_with
 
-    sorted_items.sort(reverse=reverse)
+    sorted_items.sort(reverse=False)
     for replace_with, find_what in ruleset:
         if find_what in sorted_items:
             idx = sorted_items.index(find_what)
             sorted_items[idx] = replace_with
 
-    return sorted_items
+    assert items == sorted_items, assert_msg
 
 
 def generate_new_geozone_entity(

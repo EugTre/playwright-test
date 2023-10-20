@@ -1,5 +1,5 @@
 """Base page class to inherit by other pages"""
-
+import logging
 from abc import ABC, abstractmethod
 
 import allure
@@ -17,10 +17,24 @@ class BasePage(ABC):
         """Return page's path URL."""
         return '/'
 
+    @property
+    @abstractmethod
+    def name(self):
+        """Name of the page for logging"""
+        return 'Default Page'
+
+    def log(self, msg: str, *args, level: int = logging.INFO):
+        """Logs message"""
+        logging.log(level, f'[Page: {self.name}] {msg}', *args)
+
     def verify_page(self):
         """Verifies that page's key content present as Allure step"""
+        self.log('Verification started')
+
         with allure.step("Page is loaded"):
             self._verify_page_items()
+
+        self.log('Verification success')
 
     @abstractmethod
     def _verify_page_items(self):
@@ -33,6 +47,7 @@ class BasePage(ABC):
         Args:
             title (str): expected title
         """
+        self.log('Cheking page title to be "%s"', title)
         expect(self.page).to_have_title(title)
 
     def visit(self, url: str = None) -> Response | None:
@@ -46,19 +61,24 @@ class BasePage(ABC):
             Response | None: result of get request to page URL.
         """
 
-        if url is None:
-            url = self.url
+        target_url = url
+        if target_url is None:
+            target_url = self.url
 
-        with allure.step(f'Visiting {url}'):
+        self.log('Visiting page with URL: %s', target_url)
+
+        with allure.step(f'Visiting {target_url}'):
             response = self.page.goto(
-                url,
+                target_url,
                 wait_until='networkidle'
             )
 
+            # If visit invoked to navigate to current page
+            # verifiy that page have expected elements
             if url is None:
-                # If visit invoked to navigate to current page
-                # verifiy that page have expected elements
                 self.verify_page()
+
+        self.log("URL: %s is visited", target_url)
 
         return response
 
@@ -68,6 +88,10 @@ class BasePage(ABC):
         Returns:
             Response | None: result of get request to page URL.
         """
+        self.log('Reloading current page (URL: %s)',
+                 self.page.url)
 
         with allure.step(f'Reloading page {self.page.url}'):
             self.page.reload(wait_until="domcontentloaded")
+
+        self.log('Page (URL: %s) reloaded', self.page.url)

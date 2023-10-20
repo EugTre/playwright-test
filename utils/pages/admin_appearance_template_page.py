@@ -10,6 +10,10 @@ class AdminAppearanceTemplatePage(AdminBasicCategoryPage):
         return "/admin/?app=appearance&doc=template"
 
     @property
+    def name(self):
+        return "Admin/Appearance/Template"
+
+    @property
     def header(self):
         return "Template"
 

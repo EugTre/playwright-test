@@ -69,7 +69,7 @@ def new_admin_user(base_url: str) -> tuple[str, str]:
     )
 
     user = api.create_admin_user(session, base_url)
-    logging.info('Created New Admin user for test: %s', user)
+    logging.info('[Fixture] Created New Admin user for test: %s', user)
 
     return user
 
@@ -86,7 +86,7 @@ def new_geozone(request, base_url: str) -> GeozoneEntity:
     countries = options.get('add_countries', None)
     geozone = helpers.generate_new_geozone_entity(countries)
 
-    logging.info('Created Geozone for test: %s', geozone)
+    logging.info('[Fixture] Created Geozone for test: %s', geozone)
 
     session = api.prepare_logged_admin_session(
         base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
@@ -94,7 +94,7 @@ def new_geozone(request, base_url: str) -> GeozoneEntity:
     api.create_geo_zone(session, base_url, geozone)
 
     yield geozone
-    logging.info('Removing Geozone created for test: %s', geozone)
+    logging.info('[Fixture] Removing Geozone created for test: %s', geozone)
 
     with allure.step("Sending API request to delete Geo Zone "
                      f"with id {geozone.entity_id}"):
@@ -114,7 +114,7 @@ def handle_geozones(base_url: str):
     if not geozones:
         return
 
-    logging.info('Removing Geozones created for test: %s', geozones)
+    logging.info('[Fixture] Removing Geozones created for test: %s', geozones)
     session = api.prepare_logged_admin_session(
         base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )

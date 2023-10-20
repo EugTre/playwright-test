@@ -10,6 +10,10 @@ class AdminAppearanceFaviconPage(AdminBasicCategoryPage):
         return "/admin/?app=appearance&doc=favicon"
 
     @property
+    def name(self):
+        return "Admin/Appearance/Favicon"
+
+    @property
     def header(self):
         return "Favicon"
 

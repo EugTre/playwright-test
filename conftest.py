@@ -7,6 +7,7 @@ from constants import BASE_URL
 
 # Allow assert representation
 pytest.register_assert_rewrite(
+    # Pages
     "utils.pages.admin_login_page",
     "utils.pages.admin_main_page",
     "utils.pages.admin_basic_category_page",
@@ -17,6 +18,9 @@ pytest.register_assert_rewrite(
     "utils.pages.admin_geozones_page",
     "utils.pages.admin_geozones_add_form_page",
     "utils.pages.admin_geozones_edit_form_page"
+
+    # Helper
+    "utils.helpers"
 )
 
 

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import allure
 from playwright.sync_api import Page
-from utils.elements import Banner
+from utils.elements import Label
 from utils.components import AdminSideMenu, AdminTopMenu
 from .base_page import BasePage
 
@@ -17,7 +17,7 @@ class AdminMainPage(BasePage):
     def __init__(self, page: Page) -> None:
         super().__init__(page)
 
-        self.notification_banner = Banner(
+        self.notification_banner = Label(
             page, ".alert-success", "Log In notification banner"
         )
         self.top_menu = AdminTopMenu(page)
@@ -26,6 +26,10 @@ class AdminMainPage(BasePage):
     @property
     def url(self):
         return '/admin/'
+
+    @property
+    def name(self):
+        return "Admin/Dashboard"
 
     # -- Actions
     def _verify_page_items(self):

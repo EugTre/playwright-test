@@ -1,4 +1,4 @@
-"""Admin -> Geo Zones page"""
+"""Admin -> Geo Zones -> Edit Geo Zone page"""
 import allure
 from playwright.sync_api import Page, expect
 from utils.models.admin_geozone import GeozoneEntity, CountryZoneEntity
@@ -22,6 +22,10 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
     def url(self):
         return "/admin/?app=geo_zones&doc=edit_geo_zone&page=1" \
             f"&geo_zone_id={self.entity_id}"
+
+    @property
+    def name(self):
+        return "Admin/Countries/EditForm"
 
     @property
     def header(self):
@@ -70,6 +74,7 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
     @allure.step("Deleting Geozone")
     def delete(self, confirm: bool = False):
         """Clicks 'Delete' button and optionally confirms in promt."""
+        self.log('Deleting ')
         if confirm:
             self.page.on("dialog", lambda dialog: dialog.accept())
 

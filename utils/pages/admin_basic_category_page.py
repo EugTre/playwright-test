@@ -60,6 +60,7 @@ class AdminBasicCategoryPage(BasePage):
         will be used"""
         if header is None:
             header = self.header
+        self.log('Checking page Header to be equal to "%s"', header)
         self.header_title.should_have_text(header)
 
     def breadcrumbs_should_match(self, items: tuple | list | None = None):

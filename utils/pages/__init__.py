@@ -7,6 +7,7 @@ from .admin_appearance_template_page import AdminAppearanceTemplatePage
 from .admin_appearance_favicon_page import AdminAppearanceFaviconPage
 from .admin_catalog_page import AdminCatalogPage
 from .admin_countries_page import AdminCountriesPage
+from .admin_countries_add_form_page import AdminCountriesAddFormPage
 from .admin_geozones_page import AdminGeozonesPage
 from .admin_geozones_add_form_page import AdminGeozonesAddFormPage
 from .admin_geozones_edit_form_page import AdminGeozonesEditFormPage
