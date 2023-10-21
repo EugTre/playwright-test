@@ -35,9 +35,9 @@ def login_as_admin_step(page):
 
 # --- Pages fixtures
 @pytest.fixture
-def admin_login_page(maximizable_page) -> AdminLoginPage:
+def admin_login_page(prepared_page) -> AdminLoginPage:
     """Returns Admin Login Page"""
-    return AdminLoginPage(maximizable_page)
+    return AdminLoginPage(prepared_page)
 
 
 @pytest.fixture

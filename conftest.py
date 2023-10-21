@@ -1,6 +1,8 @@
 """Fixtures for tests"""
 import tkinter
+import logging
 
+import allure
 import pytest
 from playwright.sync_api import Page
 from constants import BASE_URL
@@ -26,10 +28,14 @@ pytest.register_assert_rewrite(
 
 def pytest_addoption(parser):
     """Add CLI options for pytest"""
-    parser.addoption("--maximize",
+    parser.addoption("--maximized",
                      action="store_true",
                      default=False,
                      help="Run tests in maximized mode.")
+    parser.addini("allure.console_errors_to_step",
+                  "Attach browser console error to Allure step",
+                  type='bool',
+                  default=True)
 
 
 def pytest_configure(config):
@@ -42,7 +48,7 @@ def pytest_configure(config):
                             "options for 'new_geozone' fixture")
 
     window_size = None
-    if config.getoption("--maximize"):
+    if config.getoption("--maximized"):
         # Dirty way to get screen size to emulate
         # maximized browser
         tkapp = tkinter.Tk()
@@ -56,13 +62,59 @@ def pytest_configure(config):
     if not config.option.base_url:
         config.option.base_url = BASE_URL
 
+    pytest.pw_attach_console_errors_to_step = \
+        config.getini("allure.console_errors_to_step")
 
-@pytest.fixture(name='maximizable_page')
-def maximize_page_viewport(page) -> Page:
-    """Wrapper for page to handle maximization in PW"""
+
+@pytest.fixture
+def prepared_page(page: Page) -> Page:
+    """Prepares the page for tests:
+    - add handling of browser console errors and optional
+    attachement of browser errorr to allure steps;
+    - maximize viewport if '--maximized' CLI option was set;
+    """
+
+    # Set window size if '--maximized' CLI option was used
     if pytest.pw_window_size:
         page.set_viewport_size(pytest.pw_window_size)
-    return page
+
+    # Handle browser console errors
+    browser_errors = []
+
+    def log_console_error_msg(msg):
+        """Logs browser console error to log"""
+        if msg.type != 'error':
+            return
+
+        reported_error = f"Page: {msg.page}; text: {msg.text}."
+        logging.error(
+            "Browser Console error! %s",
+            reported_error
+        )
+        browser_errors.append(reported_error)
+        if pytest.pw_attach_console_errors_to_step:
+            allure.attach(
+                reported_error,
+                "Browser Error",
+                allure.attachment_type.TEXT
+            )
+
+    page.on("console", log_console_error_msg)
+
+    yield page
+
+    if not browser_errors:
+        return
+
+    allure.attach(
+        '\n'.join(browser_errors),
+        "Browser Errors (All)",
+        allure.attachment_type.TEXT
+    )
+    logging.error(
+        "There were %s browser console error(s) occured during the test.",
+        len(browser_errors)
+    )
 
 
 @pytest.fixture
