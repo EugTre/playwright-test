@@ -2,10 +2,11 @@
 from typing import TYPE_CHECKING
 
 from playwright.sync_api import Page
-from utils.elements import Title
-from utils.components import AdminSideMenu, AdminTopMenu
-from .base_page import BasePage
 
+from utils.components import AdminSideMenu, AdminTopMenu
+from utils.elements import Title
+
+from .base_page import BasePage
 
 if TYPE_CHECKING:
     from utils.models.admin_categories import AdminCategory
@@ -20,8 +21,7 @@ class AdminBasicCategoryPage(BasePage):
         super().__init__(page)
 
         self.header_title = Title(
-            page, "#main #content .card-title",
-            "Title of the category"
+            page, "#main #content .card-title", "Title of the category"
         )
         self.top_menu = AdminTopMenu(page)
         self.side_menu = AdminSideMenu(page)
@@ -29,7 +29,7 @@ class AdminBasicCategoryPage(BasePage):
     @property
     def url(self):
         """Return page's path URL."""
-        return '/admin'
+        return "/admin"
 
     @property
     def header(self) -> str:
@@ -47,7 +47,7 @@ class AdminBasicCategoryPage(BasePage):
         self.header_title.should_be_visible()
 
     # --- Actions
-    def change_category(self, category: 'AdminCategory') -> BasePage:
+    def change_category(self, category: "AdminCategory") -> BasePage:
         """Selects and clicks category item in side menu, and
         returns instance of basic category page (unspecified)"""
         return self.side_menu.change_category(category)

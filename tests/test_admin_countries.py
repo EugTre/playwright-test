@@ -3,24 +3,22 @@ epic('Admin')
 feature('Categories')
 story('Countries')
 """
-import pytest
 import allure
-from utils.bdd import given, when, then
-from utils.models.admin_categories import AdminCategory
-from utils.pages import (
-    AdminCountriesPage,
-    AdminCountriesAddFormPage
+import pytest
+
+from constants import (
+    COUNTRIES_FIELDS_ANNOTATION_LINKS,
+    COUNTRIES_ORDERING_RULES,
 )
 from utils import helpers
-from constants import (
-    COUNTRIES_ORDERING_RULES,
-    COUNTRIES_FIELDS_ANNOTATION_LINKS
-)
+from utils.bdd import given, then, when
+from utils.models.admin_categories import AdminCategory
+from utils.pages import AdminCountriesAddFormPage, AdminCountriesPage
 
 
-@allure.epic('Admin')
-@allure.feature('Categories')
-@allure.story('Countries')
+@allure.epic("Admin")
+@allure.feature("Categories")
+@allure.story("Countries")
 @pytest.mark.admin_category_page(AdminCategory.COUNTRIES)
 class TestAdminCategoriesCountries:
     """Tests related to Admin / Countries category"""
@@ -47,7 +45,7 @@ class TestAdminCategoriesCountries:
             helpers.compare_ordering(
                 countries,
                 COUNTRIES_ORDERING_RULES,
-                "Countries in the table are not A-Z ordered!"
+                "Countries in the table are not A-Z ordered!",
             )
 
     @allure.title("Create New Country form is available")
@@ -62,11 +60,12 @@ class TestAdminCategoriesCountries:
             pass
 
         with when("user clicks 'Create New Country' button"):
-            form: AdminCountriesAddFormPage = \
-                admin_category_page.create_new()
+            form: AdminCountriesAddFormPage = admin_category_page.create_new()
 
-        with then("form 'Create New Country' is opened, "
-                  "contains expected fields and controls"):
+        with then(
+            "form 'Create New Country' is opened, "
+            "contains expected fields and controls"
+        ):
             form.verify_page()
 
         with then("form fields are annotated with link"):

@@ -1,23 +1,14 @@
 """Fixtures related to tests"""
 import logging
 
-import pytest
 import allure
-import utils.api_helpers as api
+import pytest
 
+import utils.api_helpers as api
+from constants import SUPERADMIN_PASSWORD, SUPERADMIN_USERNAME
 from utils import helpers
-from utils.pages import (
-    AdminLoginPage,
-    AdminMainPage,
-    AdminBasicCategoryPage
-)
-from utils.models.admin_geozone import (
-    GeozoneEntity
-)
-from constants import (
-    SUPERADMIN_USERNAME,
-    SUPERADMIN_PASSWORD
-)
+from utils.models.admin_geozone import GeozoneEntity
+from utils.pages import AdminBasicCategoryPage, AdminLoginPage, AdminMainPage
 
 
 # --- Pages
@@ -27,10 +18,7 @@ def login_as_admin_step(page):
     """Step to fullfill login form and log in"""
     login_page = AdminLoginPage(page)
     login_page.visit()
-    return login_page.login(
-        SUPERADMIN_USERNAME,
-        SUPERADMIN_PASSWORD
-    )
+    return login_page.login(SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD)
 
 
 # --- Pages fixtures
@@ -41,18 +29,18 @@ def admin_login_page(prepared_page) -> AdminLoginPage:
 
 
 @pytest.fixture
-def admin_main_page(maximizable_page) -> AdminMainPage:
+def admin_main_page(prepared_page) -> AdminMainPage:
     """Returns Admin Main Page"""
-    admin_page = login_as_admin_step(maximizable_page)
+    admin_page = login_as_admin_step(prepared_page)
     return admin_page
 
 
 @pytest.fixture
-def admin_category_page(request, maximizable_page) -> AdminBasicCategoryPage:
+def admin_category_page(request, prepared_page) -> AdminBasicCategoryPage:
     """Returns Admin Category Page speciied by 'admin_category_page' marker
     of the test"""
-    category = request.node.get_closest_marker('admin_category_page').args[0]
-    admin_page = login_as_admin_step(maximizable_page)
+    category = request.node.get_closest_marker("admin_category_page").args[0]
+    admin_page = login_as_admin_step(prepared_page)
     category_page = admin_page.change_category(category)
 
     return category_page
@@ -69,7 +57,7 @@ def new_admin_user(base_url: str) -> tuple[str, str]:
     )
 
     user = api.create_admin_user(session, base_url)
-    logging.info('[Fixture] Created New Admin user for test: %s', user)
+    logging.info("[Fixture] Created New Admin user for test: %s", user)
 
     return user
 
@@ -82,11 +70,11 @@ def new_geozone(request, base_url: str) -> GeozoneEntity:
 
     Also handles geozone deletion after test finished."""
 
-    options = request.node.get_closest_marker('new_geozone_options').kwargs
-    countries = options.get('add_countries', None)
+    options = request.node.get_closest_marker("new_geozone_options").kwargs
+    countries = options.get("add_countries", None)
     geozone = helpers.generate_new_geozone_entity(countries)
 
-    logging.info('[Fixture] Created Geozone for test: %s', geozone)
+    logging.info("[Fixture] Created Geozone for test: %s", geozone)
 
     session = api.prepare_logged_admin_session(
         base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
@@ -94,10 +82,12 @@ def new_geozone(request, base_url: str) -> GeozoneEntity:
     api.create_geo_zone(session, base_url, geozone)
 
     yield geozone
-    logging.info('[Fixture] Removing Geozone created for test: %s', geozone)
+    logging.info("[Fixture] Removing Geozone created for test: %s", geozone)
 
-    with allure.step("Sending API request to delete Geo Zone "
-                     f"with id {geozone.entity_id}"):
+    with allure.step(
+        "Sending API request to delete Geo Zone "
+        f"with id {geozone.entity_id}"
+    ):
         api.delete_geo_zone(session, base_url, geozone.entity_id)
 
 
@@ -114,13 +104,12 @@ def handle_geozones(base_url: str):
     if not geozones:
         return
 
-    logging.info('[Fixture] Removing Geozones created for test: %s', geozones)
+    logging.info("[Fixture] Removing Geozones created for test: %s", geozones)
     session = api.prepare_logged_admin_session(
         base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )
     for gz_id in geozones:
         with allure.step(
-            "Sending API request to delete Geo Zone "
-            f"with id {gz_id}"
+            f"Sending API request to delete Geo Zone with id {gz_id}"
         ):
             api.delete_geo_zone(session, base_url, gz_id)

@@ -10,6 +10,7 @@ from constants import MESSAGES_REPOSITORY
 class TextRepository:
     """Class that reads message catalog and provide methods
     to get value from it."""
+
     def __init__(self, file: str):
         self.parser = ConfigParser()
         with open(file, encoding="utf-8") as repo_file:
@@ -27,7 +28,7 @@ class TextRepository:
         Returns:
             str|re.Pattern: message from text catalog.
         """
-        section, key = path.split(' ')
+        section, key = path.split(" ")
         value = self.parser[section][key]
 
         if value.startswith('r"') or value.startswith("r'"):

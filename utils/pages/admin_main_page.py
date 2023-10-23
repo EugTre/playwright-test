@@ -3,10 +3,11 @@ from typing import TYPE_CHECKING
 
 import allure
 from playwright.sync_api import Page
-from utils.elements import Label
-from utils.components import AdminSideMenu, AdminTopMenu
-from .base_page import BasePage
 
+from utils.components import AdminSideMenu, AdminTopMenu
+from utils.elements import Label
+
+from .base_page import BasePage
 
 if TYPE_CHECKING:
     from utils.models.admin_categories import AdminCategory
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
 
 class AdminMainPage(BasePage):
     """Admin main page (after login)"""
+
     def __init__(self, page: Page) -> None:
         super().__init__(page)
 
@@ -25,7 +27,7 @@ class AdminMainPage(BasePage):
 
     @property
     def url(self):
-        return '/admin/'
+        return "/admin/"
 
     @property
     def name(self):
@@ -36,14 +38,15 @@ class AdminMainPage(BasePage):
         self.side_menu.should_be_visible()
         self.top_menu.should_be_visible()
 
-    def change_category(self, category: 'AdminCategory') -> BasePage:
+    def change_category(self, category: "AdminCategory") -> BasePage:
         """Selects and clicks category item in side menu, and
         returns instance of basic category page (unspecified)"""
         return self.side_menu.change_category(category)
 
     # --- Custom assertions
-    @allure.step("Check that notification banner is displayed "
-                 "on successfull login")
+    @allure.step(
+        "Check that notification banner is displayed " "on successfull login"
+    )
     def login_banner_shoule_be_visible(self):
         """Checks that login banner is visible"""
         self.notification_banner.should_be_visible()

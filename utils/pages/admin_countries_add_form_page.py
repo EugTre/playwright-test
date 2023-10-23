@@ -1,74 +1,82 @@
 """Admin -> Countries -> Create New Country page"""
 from logging import WARNING
 
-import pytest
 import allure
+import pytest
 from playwright.sync_api import Page, TimeoutError
-from utils.elements import Button
+
 from utils.components import LinkAnnotatedField
+from utils.elements import Button
+
 from .admin_basic_category_page import AdminBasicCategoryPage
 
 
 class AdminCountriesAddFormPage(AdminBasicCategoryPage):
     """Admin -> Countries -> Create New Country page"""
+
     def __init__(self, page: Page) -> None:
         super().__init__(page)
         self.save_button = Button(
-            page, "#content .card-action button[name=save]",
-            "Save"
+            page, "#content .card-action button[name=save]", "Save"
         )
         self.cancel_button = Button(
-            page, "#content .card-action button[name=cancel]",
-            "Cancel"
+            page, "#content .card-action button[name=cancel]", "Cancel"
         )
 
         self.satatus_enabled_button = Button(
-            page, "form input[name=status][value=1]",
-            "Enabled"
+            page, "form input[name=status][value=1]", "Enabled"
         )
         self.satatus_disabled_button = Button(
-            page, "form input[name=status][value=0]",
-            "Disabled"
+            page, "form input[name=status][value=0]", "Disabled"
         )
 
         self.iso_number_field = LinkAnnotatedField(
-            page, "form div.form-group:has(input[name=iso_code_1])",
-            "Number (ISO Code)"
+            page,
+            "form div.form-group:has(input[name=iso_code_1])",
+            "Number (ISO Code)",
         )
         self.iso_code1_field = LinkAnnotatedField(
-            page, "form div.form-group:has(input[name=iso_code_2])",
-            "Code (ISO Code)"
+            page,
+            "form div.form-group:has(input[name=iso_code_2])",
+            "Code (ISO Code)",
         )
         self.iso_code2_field = LinkAnnotatedField(
-            page, "form div.form-group:has(input[name=iso_code_3])",
-            "Code (ISO Code)"
+            page,
+            "form div.form-group:has(input[name=iso_code_3])",
+            "Code (ISO Code)",
         )
 
         self.address_format_field = LinkAnnotatedField(
-            page, "form div.form-group:has(textarea[name=address_format])",
+            page,
+            "form div.form-group:has(textarea[name=address_format])",
             "Address Format",
             input_type="textarea",
-            elements_selectors_override={"link": "a:last-child"}
+            elements_selectors_override={"link": "a:last-child"},
         )
         self.tax_id_format_field = LinkAnnotatedField(
-            page, "form div.form-group:has(input[name=tax_id_format])",
-            "Tax ID Format"
+            page,
+            "form div.form-group:has(input[name=tax_id_format])",
+            "Tax ID Format",
         )
         self.postcode_format_field = LinkAnnotatedField(
-            page, "form div.form-group:has(input[name=postcode_format])",
-            "Postcode Format"
+            page,
+            "form div.form-group:has(input[name=postcode_format])",
+            "Postcode Format",
         )
         self.language_code_field = LinkAnnotatedField(
-            page, "form div.form-group:has(input[name=language_code])",
-            "Language Code"
+            page,
+            "form div.form-group:has(input[name=language_code])",
+            "Language Code",
         )
         self.currency_code_field = LinkAnnotatedField(
-            page, "form div.form-group:has(input[name=currency_code])",
-            "Currency Code"
+            page,
+            "form div.form-group:has(input[name=currency_code])",
+            "Currency Code",
         )
         self.phone_country_code_field = LinkAnnotatedField(
-            page, "form div.form-group:has(input[name=phone_code])",
-            "Phone Country Code"
+            page,
+            "form div.form-group:has(input[name=phone_code])",
+            "Phone Country Code",
         )
 
         # Collection of annotated fields (with links in label)
@@ -81,12 +89,12 @@ class AdminCountriesAddFormPage(AdminBasicCategoryPage):
             "postcode_format": self.postcode_format_field,
             "language_code": self.language_code_field,
             "currency_code": self.currency_code_field,
-            "phone_code": self.phone_country_code_field
+            "phone_code": self.phone_country_code_field,
         }
 
     @property
     def url(self):
-        return '/admin/?app=countries&doc=edit_country'
+        return "/admin/?app=countries&doc=edit_country"
 
     @property
     def name(self):
@@ -98,7 +106,7 @@ class AdminCountriesAddFormPage(AdminBasicCategoryPage):
 
     @property
     def breadcrumbs(self) -> tuple[str]:
-        return ('Countries', 'Create New Country')
+        return ("Countries", "Create New Country")
 
     def _verify_page_items(self):
         super()._verify_page_items()
@@ -135,13 +143,18 @@ class AdminCountriesAddFormPage(AdminBasicCategoryPage):
                 # Report mismatch, but do not stop test
                 self.log(
                     'There is no labeled input with name "%s".',
-                    input_name, level=WARNING
+                    input_name,
+                    level=WARNING,
                 )
                 continue
 
             expected_label_text, expected_href = expected_value
-            self.log('Field "%s", expected label=%s, href=%s',
-                     input_name, expected_label_text, expected_href)
+            self.log(
+                'Field "%s", expected label=%s, href=%s',
+                input_name,
+                expected_label_text,
+                expected_href,
+            )
 
             with allure.step(f'Checking field "{input_name}"'):
                 field.should_be_visible()
@@ -149,8 +162,10 @@ class AdminCountriesAddFormPage(AdminBasicCategoryPage):
                 field.label_should_contain_link()
                 field.label_link_should_have_value(expected_href)
 
-    @allure.step("[Page] Check that external links annotations "
-                 "are opened in new tabs")
+    @allure.step(
+        "[Page] Check that external links annotations "
+        "are opened in new tabs"
+    )
     def field_annotations_should_open_in_new_tabs(self):
         """Clicks each field annotation link and checks that
         link opens a new tab"""
@@ -162,8 +177,8 @@ class AdminCountriesAddFormPage(AdminBasicCategoryPage):
 
             except TimeoutError:
                 pytest.fail(
-                    'No new page was opened while clicking link at '
-                    f'field {field.name} (href={field.get_link_value()}!'
+                    "No new page was opened while clicking link at "
+                    f"field {field.name} (href={field.get_link_value()}!"
                 )
 
             self.log("Closing newly opend tab")

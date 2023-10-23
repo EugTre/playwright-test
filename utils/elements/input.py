@@ -9,15 +9,18 @@ from .base_element import BaseElement
 
 class Input(BaseElement):
     """Class for Input tag element"""
+
     @property
     def type_of(self) -> str:
-        return 'input'
+        return "input"
 
     # --- Actions
     def click_and_fill(
-        self, value: str,
-        mask_value=False, validate_value=False,
-        **locator_qualifiers
+        self,
+        value: str,
+        mask_value=False,
+        validate_value=False,
+        **locator_qualifiers,
     ):
         """Clicks and then fills input with value,
         Args:
@@ -32,13 +35,15 @@ class Input(BaseElement):
             value,
             mask_value=mask_value,
             validate_value=validate_value,
-            **locator_qualifiers
+            **locator_qualifiers,
         )
 
     def fill(
-        self, value: str,
-        mask_value=False, validate_value=False,
-        **locator_qualifiers
+        self,
+        value: str,
+        mask_value=False,
+        validate_value=False,
+        **locator_qualifiers,
     ):
         """Fills input with given value.
 
@@ -50,13 +55,16 @@ class Input(BaseElement):
             Defaults to False.
         """
         value_to_log = mask_string_value(value) if mask_value else value
-        with allure.step(f'Filling "{value_to_log}" into {self.type_of} with '
-                         f'name "{self.name}"'):
+        with allure.step(
+            f'Filling "{value_to_log}" into {self.type_of} with '
+            f'name "{self.name}"'
+        ):
             self.get_locator(**locator_qualifiers).fill(value=value)
 
             if validate_value:
-                self.should_have_value(value, mask_value=mask_value,
-                                       **locator_qualifiers)
+                self.should_have_value(
+                    value, mask_value=mask_value, **locator_qualifiers
+                )
 
     # --- Assertions
     def should_have_value(self, value, mask_value=False, **locator_qualifiers):
@@ -68,7 +76,8 @@ class Input(BaseElement):
             reports. Defaults to False.
         """
         value_to_log = mask_string_value(value) if mask_value else value
-        with allure.step(f'{self.type_of.capitalize()} with name '
-                         f'"{self.name}" should have value "{value_to_log}"'):
-            expect(self.get_locator(**locator_qualifiers)) \
-                .to_have_value(value)
+        with allure.step(
+            f"{self.type_of.capitalize()} with name "
+            f'"{self.name}" should have value "{value_to_log}"'
+        ):
+            expect(self.get_locator(**locator_qualifiers)).to_have_value(value)

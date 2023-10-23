@@ -1,6 +1,7 @@
 .vscode/
 tmp
 /sandbox.py
+.black
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -2,31 +2,24 @@
 from enum import Enum
 
 from utils.pages import (
-    AdminAppearanceTemplatePage,
     AdminAppearanceFaviconPage,
+    AdminAppearanceTemplatePage,
     AdminCatalogPage,
     AdminCountriesPage,
-    AdminGeozonesPage
+    AdminGeozonesPage,
 )
 
 
 class AdminCategory(Enum):
     """Categories for Admin Side menu"""
-    APPEARANCE = (
-        'appearance', None, AdminAppearanceTemplatePage
-    )
+
+    APPEARANCE = ("appearance", None, AdminAppearanceTemplatePage)
     APPEARANCE_TEMPLATE = (
-        'appearance', 'template', AdminAppearanceTemplatePage
+        "appearance",
+        "template",
+        AdminAppearanceTemplatePage,
     )
-    APPEARANCE_FAVICON = (
-        'appearance', 'favicon', AdminAppearanceFaviconPage
-    )
-    CATALOG = (
-        'catalog', None, AdminCatalogPage
-    )
-    COUNTRIES = (
-        'countries', None, AdminCountriesPage
-    )
-    GEOZONES = (
-        'geo_zones', None, AdminGeozonesPage
-    )
+    APPEARANCE_FAVICON = ("appearance", "favicon", AdminAppearanceFaviconPage)
+    CATALOG = ("catalog", None, AdminCatalogPage)
+    COUNTRIES = ("countries", None, AdminCountriesPage)
+    GEOZONES = ("geo_zones", None, AdminGeozonesPage)

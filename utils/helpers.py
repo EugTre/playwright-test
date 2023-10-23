@@ -1,7 +1,10 @@
 """Various helper functions"""
 import random
+from uuid import uuid4
 from copy import copy
-from utils.models.admin_geozone import GeozoneEntity, CountryZoneEntity
+
+from utils.models.admin_geozone import CountryZoneEntity, GeozoneEntity
+from utils.models.admin_product import ProductEntity
 
 
 def mask_string_value(value: str) -> str:
@@ -14,7 +17,7 @@ def mask_string_value(value: str) -> str:
     else:
         value = value[-3:]
 
-    return f'****{value}'
+    return f"****{value}"
 
 
 def compare_ordering(items: list, ruleset: list, assert_msg: str):
@@ -48,7 +51,7 @@ def compare_ordering(items: list, ruleset: list, assert_msg: str):
 
 
 def generate_new_geozone_entity(
-    add_countries: list[str] | tuple[str] | None = None
+    add_countries: list[str] | tuple[str] | None = None,
 ):
     """Creates Geozone entity with randomized name and
     some stub data.
@@ -58,10 +61,10 @@ def generate_new_geozone_entity(
         list of countries value code to include"""
     geozone = GeozoneEntity(
         entity_id=None,
-        code='TEST',
-        name=f'Test-{random.randint(1000, 9999)}',
+        code="TEST",
+        name=f"Test-{random.randint(1000, 9999)}",
         description="Test Description Lines",
-        zones=None
+        zones=None,
     )
 
     if not add_countries:
@@ -70,11 +73,35 @@ def generate_new_geozone_entity(
     geozone.zones = []
     for zone_value in add_countries:
         geozone.zones.append(
-            CountryZoneEntity(
-                zone_id=None,
-                value=zone_value,
-                city='Town'
-            )
+            CountryZoneEntity(zone_id=None, value=zone_value, city="Town")
         )
 
     return geozone
+
+
+def generate_new_product_entity():
+    """Creates instance of Product entity clas
+    with randomized name and properties.
+    """
+    name_suffix = str(uuid4()).replace("-", " ")
+    return ProductEntity(
+        name=f"Pillow {name_suffix}",
+        price=random.uniform(1.00, 1000.00),
+        short_desc="Pokemon-themed pillow",
+        full_desc="""
+            Add a touch of cuteness and comfort to your home with this square
+            Pikachu head-shaped pillow. Made with premium quality materials,
+            this pillow is a must-have for any fan of the popular Pokémon
+            franchise.
+
+            Its vibrant yellow color and adorable facial features accurately
+            depict the iconic character, creating a charming addition to any
+            living space or bedroom. Whether you use it for decoration or for
+            snuggling up during those cozy evenings, this Pikachu head pillow
+            is sure to bring a smile to your face. Its soft and plush texture
+            provides optimum comfort for relaxation and easily complements any
+            interior style. Embrace the lovable world of Pikachu with this
+            delightful square pillow that brings both charm and coziness to
+            your home.
+        """,
+    )

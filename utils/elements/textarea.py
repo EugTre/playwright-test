@@ -7,4 +7,4 @@ class Textarea(Input):
 
     @property
     def type_of(self) -> str:
-        return 'textarea'
+        return "textarea"

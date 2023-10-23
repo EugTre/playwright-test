@@ -1,8 +1,10 @@
 """Admin -> Geo Zones -> Edit Geo Zone page"""
 import allure
 from playwright.sync_api import Page, expect
-from utils.models.admin_geozone import GeozoneEntity, CountryZoneEntity
+
 from utils.elements import Button
+from utils.models.admin_geozone import CountryZoneEntity, GeozoneEntity
+
 from .admin_geozones_add_form_page import AdminGeozonesAddFormPage
 
 
@@ -14,14 +16,15 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
         self.entity_id = entity_id
 
         self.delete_button = Button(
-            page, "#content .card-action button[name='delete']",
-            "Delete"
+            page, "#content .card-action button[name='delete']", "Delete"
         )
 
     @property
     def url(self):
-        return "/admin/?app=geo_zones&doc=edit_geo_zone&page=1" \
+        return (
+            "/admin/?app=geo_zones&doc=edit_geo_zone&page=1"
             f"&geo_zone_id={self.entity_id}"
+        )
 
     @property
     def name(self):
@@ -33,14 +36,15 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
 
     @property
     def breadcrumbs(self):
-        return ('Geo Zones', 'Edit Geo Zone')
+        return ("Geo Zones", "Edit Geo Zone")
 
     def _verify_page_items(self):
         super()._verify_page_items()
         self.delete_button.should_be_visible()
 
-    def find_zone(self, zone: CountryZoneEntity, update_id: bool = False
-                  ) -> tuple[int, int, str, str, str]:
+    def find_zone(
+        self, zone: CountryZoneEntity, update_id: bool = False
+    ) -> tuple[int, int, str, str, str]:
         """Looks for zone in Zones table and selecting one with
         matching Country and Town values (or by zone_id if known)
 
@@ -60,10 +64,12 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
         for row_idx, row_value in enumerate(table_values):
             zone_id, zone_name, zone_zone, zone_city, _ = row_value
 
-            if any((
-                zone.zone_id and zone.zone_id == zone_id,
-                zone.value == zone_name and zone.city == zone_city
-            )):
+            if any(
+                (
+                    zone.zone_id and zone.zone_id == zone_id,
+                    zone.value == zone_name and zone.city == zone_city,
+                )
+            ):
                 if update_id:
                     zone.zone_id = zone_id
 
@@ -74,7 +80,7 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
     @allure.step("Deleting Geozone")
     def delete(self, confirm: bool = False):
         """Clicks 'Delete' button and optionally confirms in promt."""
-        self.log('Deleting ')
+        self.log("Deleting ")
         if confirm:
             self.page.on("dialog", lambda dialog: dialog.accept())
 
@@ -86,8 +92,9 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
         """Checks that pages url contains given entity_id"""
         expect(self.page).to_have_url(self.url)
 
-    @allure.step("Check that form contain data that matches "
-                 "to given geozone entity")
+    @allure.step(
+        "Check that form contain data that matches " "to given geozone entity"
+    )
     def data_should_match_to(self, geozone: GeozoneEntity):
         """Checks that data in the fields is matching given
         geozone entity"""
@@ -107,8 +114,7 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
         for expected_zone in geozone.zones:
             self.__validate_country_zone_entry(rows_content, expected_zone)
 
-    @allure.step("Table data of {zone_entity} country "
-                 "matches to expected")
+    @allure.step("Table data of {zone_entity} country " "matches to expected")
     def __validate_country_zone_entry(self, rows_content, zone_entity):
         zone = zone_entity.value
         city = zone_entity.city
@@ -121,29 +127,33 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
 
             id_text, country_text, _, city_text = texts
             with allure.step("Values are displayed"):
-                assert id_text, \
-                    '"ID" displayed value is empty ' \
-                    f'for {zone} zone!'
-                assert country_text, \
-                    '"Country" displayed value is empty ' \
-                    f'for {zone} zone!'
-                assert city_text, \
-                    f'"City" displayed value is empty for {zone} zone!'
+                assert id_text, (
+                    '"ID" displayed value is empty ' f"for {zone} zone!"
+                )
+                assert country_text, (
+                    '"Country" displayed value is empty ' f"for {zone} zone!"
+                )
+                assert (
+                    city_text
+                ), f'"City" displayed value is empty for {zone} zone!'
 
             with allure.step("Displayed values match to actual values"):
-                assert id_value == id_text, \
-                    'Value and displayed value mismatch for "ID" field ' \
-                    f'for {zone} zone!'
-                assert city_value == city_text, \
-                    'Value and displayed value mismatch for "City" field ' \
-                    f'for {zone} zone!'
+                assert id_value == id_text, (
+                    'Value and displayed value mismatch for "ID" field '
+                    f"for {zone} zone!"
+                )
+                assert city_value == city_text, (
+                    'Value and displayed value mismatch for "City" field '
+                    f"for {zone} zone!"
+                )
 
             return
 
         # If not found - aseert
-        available_str = '\n'.join([
-            f'   {str(value)}' for _, value in rows_content
-        ])
-        assert False, \
-            f'Zone "{zone}" (city: {city}) is missing in the table! ' \
-            f'Available items: \n{available_str}'
+        available_str = "\n".join(
+            [f"   {str(value)}" for _, value in rows_content]
+        )
+        assert False, (
+            f'Zone "{zone}" (city: {city}) is missing in the table! '
+            f"Available items: \n{available_str}"
+        )

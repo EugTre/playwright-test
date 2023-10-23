@@ -2,15 +2,14 @@
 from typing import TYPE_CHECKING
 
 import allure
-
 from playwright.sync_api import Page
-from utils.elements import Button
-from .base_component import BaseComponent
 
+from utils.elements import Button
+
+from .base_component import BaseComponent
 
 if TYPE_CHECKING:
     from utils.models.admin_categories import AdminCategory
-
 
 
 class AdminSideMenu(BaseComponent):
@@ -18,6 +17,7 @@ class AdminSideMenu(BaseComponent):
     Contains list of categories Logo and list of category buttons
     like Catalog, Customers, Settings, etc.
     """
+
     def __init__(self, page: Page):
         super().__init__(page)
 
@@ -25,22 +25,24 @@ class AdminSideMenu(BaseComponent):
             page, "#sidebar > #logotype > a", "Logo button"
         )
         self.category_button = Button(
-            page, "#sidebar > #box-apps-menu > .app[data-code={category}] > a",
-            "Category button"
+            page,
+            "#sidebar > #box-apps-menu > .app[data-code={category}] > a",
+            "Category button",
         )
         self.subcategory_button = Button(
-            page, "#sidebar > #box-apps-menu .doc[data-id={category}] a",
-            "Subcategory button"
+            page,
+            "#sidebar > #box-apps-menu .doc[data-id={category}] a",
+            "Subcategory button",
         )
 
     @property
     def name(self):
         return "Side Menu"
 
-    @allure.step('Switching category using side menu')
-    def change_category(self, category: 'AdminCategory'):
+    @allure.step("Switching category using side menu")
+    def change_category(self, category: "AdminCategory"):
         """Performs series of cliks needed to change category page"""
-        self.log('Swithing category in side menu to %s', category)
+        self.log("Swithing category in side menu to %s", category)
 
         category_id, subcategory_id, page_cls = category.value
 
@@ -49,7 +51,7 @@ class AdminSideMenu(BaseComponent):
             self.click_sub_category(subcategory_id)
 
         new_page = page_cls(self.page)
-        self.log('Category switched, new page is %s', new_page.name)
+        self.log("Category switched, new page is %s", new_page.name)
 
         return new_page
 
@@ -64,5 +66,5 @@ class AdminSideMenu(BaseComponent):
         self.subcategory_button.click(category=category)
 
     def should_be_visible(self):
-        self.log('Check that component is visible')
+        self.log("Check that component is visible")
         self.logo_button.should_be_visible()

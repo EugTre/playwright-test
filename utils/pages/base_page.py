@@ -8,6 +8,7 @@ from playwright.sync_api import Page, Response, expect
 
 class BasePage(ABC):
     """Basic class for page"""
+
     def __init__(self, page: Page) -> None:
         self.page = page
 
@@ -15,26 +16,26 @@ class BasePage(ABC):
     @abstractmethod
     def url(self):
         """Return page's path URL."""
-        return '/'
+        return "/"
 
     @property
     @abstractmethod
     def name(self):
         """Name of the page for logging"""
-        return 'Default Page'
+        return "Default Page"
 
     def log(self, msg: str, *args, level: int = logging.INFO):
         """Logs message"""
-        logging.log(level, f'[Page: {self.name}] {msg}', *args)
+        logging.log(level, f"[Page: {self.name}] {msg}", *args)
 
     def verify_page(self):
         """Verifies that page's key content present as Allure step"""
-        self.log('Verification started')
+        self.log("Verification started")
 
         with allure.step("Page is loaded"):
             self._verify_page_items()
 
-        self.log('Verification success')
+        self.log("Verification success")
 
     @abstractmethod
     def _verify_page_items(self):
@@ -65,13 +66,10 @@ class BasePage(ABC):
         if target_url is None:
             target_url = self.url
 
-        self.log('Visiting page with URL: %s', target_url)
+        self.log("Visiting page with URL: %s", target_url)
 
-        with allure.step(f'Visiting {target_url}'):
-            response = self.page.goto(
-                target_url,
-                wait_until='networkidle'
-            )
+        with allure.step(f"Visiting {target_url}"):
+            response = self.page.goto(target_url, wait_until="networkidle")
 
             # If visit invoked to navigate to current page
             # verifiy that page have expected elements
@@ -88,10 +86,9 @@ class BasePage(ABC):
         Returns:
             Response | None: result of get request to page URL.
         """
-        self.log('Reloading current page (URL: %s)',
-                 self.page.url)
+        self.log("Reloading current page (URL: %s)", self.page.url)
 
-        with allure.step(f'Reloading page {self.page.url}'):
+        with allure.step(f"Reloading page {self.page.url}"):
             self.page.reload(wait_until="domcontentloaded")
 
-        self.log('Page (URL: %s) reloaded', self.page.url)
+        self.log("Page (URL: %s) reloaded", self.page.url)

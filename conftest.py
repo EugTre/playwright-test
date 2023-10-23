@@ -1,10 +1,11 @@
 """Fixtures for tests"""
-import tkinter
 import logging
+import tkinter
 
 import allure
 import pytest
 from playwright.sync_api import Page
+
 from constants import BASE_URL
 
 # Allow assert representation
@@ -87,7 +88,7 @@ def prepared_page(page: Page) -> Page:
             return
 
         reported_error = f"Page: {msg.page}; text: {msg.text}."
-        logging.error(
+        logging.warning(
             "Browser Console error! %s",
             reported_error
         )
@@ -111,7 +112,7 @@ def prepared_page(page: Page) -> Page:
         "Browser Errors (All)",
         allure.attachment_type.TEXT
     )
-    logging.error(
+    logging.warning(
         "There were %s browser console error(s) occured during the test.",
         len(browser_errors)
     )
