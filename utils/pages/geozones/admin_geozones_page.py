@@ -11,7 +11,7 @@ from utils.models.entry_lookup_strategy import (
     EntryLookupStrategy,
     EntryReadStrategy
 )
-from .admin_basic_category_page import AdminBasicCategoryPage
+from ..admin_basic_category_page import AdminBasicCategoryPage
 from .admin_geozones_add_form_page import AdminGeozonesAddFormPage
 from .admin_geozones_edit_form_page import AdminGeozonesEditFormPage
 
@@ -27,7 +27,7 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
             lookup=(
                 EntryLookupStrategy(
                     column=1, field="id", selector='input', by_text=False,
-                    is_uid=True
+                    is_primary_key=True
                 ),
                 EntryLookupStrategy(column=3, field="name"),
                 EntryLookupStrategy(column=4, field="zones")
@@ -43,7 +43,7 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
         )
 
         self.notification_banner = Label(
-            page, ".alert-success", "Notification"
+            page, ".alert-success", "Notification banner"
         )
 
         self.geozone_edit_button = Button(
@@ -73,8 +73,7 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
 
     # --- Actions
     def find_in_table(
-        self, entity: GeozoneEntity, update_entity_id: bool = False,
-        **locator_qualifiers
+        self, entity: GeozoneEntity, update_entity_id: bool = False
     ) -> int:
         """Returns geozone row index and data (id, name, zones counter)
         for row with given name in geozones table.
@@ -87,26 +86,17 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
         Returns:
             tuple in format
             (row_idx: int, entity_id: str, name: str, zones_count: int)"""
-        if entity.name is None and entity.entity_id is None:
-            raise ValueError(
-                "Given geozone identifiers are missing "
-                '(both "name" and "entity_id" are None)!'
-            )
-
         self.log(
             "Looking for Geozones like: %s",
             entity.get_lookup_params()
         )
 
-        row_idx = self.table.find_entry(
-            entity.get_lookup_params(),
-            **locator_qualifiers
-        )
-        self.log(row_idx)
+        row_idx = self.table.find_entry(entity)
+        self.log("Found at row %s", row_idx)
 
         if update_entity_id:
             entity.entity_id = self.table.get_entry_texts(
-                row_idx, [EntryReadStrategy(column=2)], **locator_qualifiers
+                row_idx, [EntryReadStrategy(column=2)]
             )[0]
 
         allure.attach(
@@ -154,24 +144,16 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
         self.notification_banner.should_have_text(text)
 
     @allure.step("Check that geozone metadata matches to expected")
-    def geozone_metadata_should_match(self, entity: GeozoneEntity):
+    def table_entry_data_should_match(self, entity: GeozoneEntity):
         """Check that geozone metadata matches to expected"""
+
+        self.log("Checking table entry to match %s", entity)
         with allure.step("Entry is in table"):
             row_idx = self.find_in_table(entity)
             self.table.entry_should_be_visible(row_idx)
 
-        self.log(
-            "(geozone_metadata_should_match) Found at row: %s", row_idx
-        )
-        self.log(
-            "(geozone_metadata_should_match) Get texts from row: %s", row_idx
-        )
         data_name, data_zones_count = \
             self.table.get_entry_texts(row_idx)
-
-        self.log(
-            "(geozone_metadata_should_match) Compare metadate for: %s", row_idx
-        )
 
         with allure.step(f'Geozone name matches to "{entity.name}"'):
             assert entity.name == data_name, \

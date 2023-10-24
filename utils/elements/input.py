@@ -59,11 +59,11 @@ class Input(BaseElement):
             f'Filling "{value_to_log}" into {self.type_of} with '
             f'name "{self.name}"'
         ):
-            self.get_locator(**locator_qualifiers).fill(value=value)
+            self.get_locator(**locator_qualifiers).fill(value=str(value))
 
             if validate_value:
                 self.should_have_value(
-                    value, mask_value=mask_value, **locator_qualifiers
+                    str(value), mask_value=mask_value, **locator_qualifiers
                 )
 
     # --- Assertions

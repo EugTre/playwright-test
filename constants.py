@@ -55,3 +55,8 @@ COUNTRIES_FIELDS_ANNOTATION_LINKS = {
         'https://en.wikipedia.org/wiki/List_of_country_calling_codes'
     ),
 }
+
+# Product images for product creation
+PRODUCT_IMAGES = [
+    'resources/product.png'
+]

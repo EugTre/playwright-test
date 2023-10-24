@@ -7,7 +7,7 @@ from playwright.sync_api import Page
 from utils.elements import Button, Input, Select, Table
 from utils.models.admin_geozone import CountryZoneEntity, GeozoneEntity
 
-from .admin_basic_category_page import AdminBasicCategoryPage
+from ..admin_basic_category_page import AdminBasicCategoryPage
 
 
 class AdminGeozonesAddFormPage(AdminBasicCategoryPage):

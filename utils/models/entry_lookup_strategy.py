@@ -36,7 +36,7 @@ class EntryLookupStrategy:
     selector: str = ""
     by_text: bool = True
     apply_expression: str = "value.trim()"
-    is_uid: bool = False
+    is_primary_key: bool = False
 
     def prepare_strategy_data(
         self,
@@ -62,12 +62,21 @@ class EntryLookupStrategy:
             f"{expected_value}",
             self.by_text,
             "_EXPR_",
-            self.is_uid
+            self.is_primary_key
         ]).replace(
             '"_EXPR_"', f"value => {self.apply_expression}"
         )
 
         return output
+
+    def to_read_strategy(self) -> 'EntryReadStrategy':
+        """Converts object to EntryReadStrategy object"""
+        return EntryReadStrategy(
+            column=self.column,
+            selector=self.selector,
+            apply_expression=self.apply_expression,
+            by_text=self.by_text
+        )
 
 
 @dataclass
@@ -94,6 +103,19 @@ class EntryReadStrategy:
     selector: str = ""
     by_text: bool = True
     apply_expression: str = "value.trim()"
+
+    def to_lookup_strategy(
+        self, field: str, is_primary_key: bool = False
+    ) -> 'EntryLookupStrategy':
+        """Converts EntryReadStrategy to EntryLookupStrategy"""
+        return EntryLookupStrategy(
+            column=self.column,
+            field=field,
+            selector=self.selector,
+            by_text=self.by_text,
+            apply_expression=self.apply_expression,
+            is_primary_key=is_primary_key
+        )
 
     def prepare_strategy_data(self) -> str:
         """Converts strategy data into JS-like array to be injected

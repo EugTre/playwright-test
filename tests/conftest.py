@@ -6,8 +6,10 @@ import pytest
 
 import utils.api_helpers as api
 from constants import SUPERADMIN_PASSWORD, SUPERADMIN_USERNAME
-from utils import helpers
+from utils.models.base_entity import BackOfficeEntity
+from utils.models.entitiy_types import EntityType
 from utils.models.admin_geozone import GeozoneEntity
+from utils.models.admin_catalog import ProductEntity
 from utils.pages import AdminBasicCategoryPage, AdminLoginPage, AdminMainPage
 
 
@@ -47,69 +49,68 @@ def admin_category_page(request, prepared_page) -> AdminBasicCategoryPage:
 
 
 # --- Data generation
-@allure.title("Create new admin user via API request")
+@allure.step("Create new admin user via API request")
 @pytest.fixture
 def new_admin_user(base_url: str) -> tuple[str, str]:
     """Creates new admin user by API call"""
     # Generate username and password
-    session = api.prepare_logged_admin_session(
+    user = api.create_admin_user(
         base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )
-
-    user = api.create_admin_user(session, base_url)
     logging.info("[Fixture] Created New Admin user for test: %s", user)
-
     return user
 
 
-@allure.title("Create Geo Zone via API request")
 @pytest.fixture
 def new_geozone(request, base_url: str) -> GeozoneEntity:
-    """Creates new geozone using API call and return
-    geozone entity.
+    options = {
+        "add_countries": None
+    }
+    marker = request.node.get_closest_marker("new_geozone_options")
+    if marker and marker.kwargs:
+        options.update(marker.kwargs)
 
-    Also handles geozone deletion after test finished."""
-
-    options = request.node.get_closest_marker("new_geozone_options").kwargs
-    countries = options.get("add_countries", None)
-    geozone = helpers.generate_new_geozone_entity(countries)
-
-    logging.info("[Fixture] Created Geozone for test: %s", geozone)
-
-    session = api.prepare_logged_admin_session(
-        base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
+    yield from api.get_new_entity(
+        EntityType.GEOZONE, options, base_url,
+        SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )
-    api.create_geo_zone(session, base_url, geozone)
-
-    yield geozone
-    logging.info("[Fixture] Removing Geozone created for test: %s", geozone)
-
-    with allure.step(
-        "Sending API request to delete Geo Zone "
-        f"with id {geozone.entity_id}"
-    ):
-        api.delete_geo_zone(session, base_url, geozone.entity_id)
 
 
 @pytest.fixture
-def handle_geozones(base_url: str):
-    """Allows to handle geozone entities deletion
-    after test finished.
-    """
-    geozones = []
-    yield geozones
+def new_product(request, base_url: str) -> ProductEntity:
+    options = {
+        "images": None
+    }
 
-    geozones = [gz for gz in geozones if gz is not None]
+    marker = request.node.get_closest_marker("new_product_options")
+    if marker and marker.kwargs:
+        options.update(marker.kwargs)
 
-    if not geozones:
+    yield from api.get_new_entity(
+        EntityType.PRODUCT, options, base_url,
+        SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
+    )
+
+
+@pytest.fixture
+def handle_entities(base_url: str):
+    """Deletes object of HandledEntity protocol (e.g. GeozoneEntity,
+    ProductEntity) after a test"""
+    pool: list[BackOfficeEntity] = []
+    yield pool
+
+    entities = [
+        entity
+        for entity in pool
+        if entity.entity_id
+    ]
+
+    if not entities:
         return
 
-    logging.info("[Fixture] Removing Geozones created for test: %s", geozones)
-    session = api.prepare_logged_admin_session(
-        base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
+    logging.info(
+        "[Fixture] Removing entities created during test: %s", entities
     )
-    for gz_id in geozones:
-        with allure.step(
-            f"Sending API request to delete Geo Zone with id {gz_id}"
-        ):
-            api.delete_geo_zone(session, base_url, gz_id)
+    api.delete_entities(
+        entities, base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
+    )

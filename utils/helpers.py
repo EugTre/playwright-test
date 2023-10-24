@@ -4,7 +4,7 @@ from uuid import uuid4
 from copy import copy
 
 from utils.models.admin_geozone import CountryZoneEntity, GeozoneEntity
-from utils.models.admin_product import ProductEntity
+from utils.models.admin_catalog import ProductEntity
 
 
 def mask_string_value(value: str) -> str:
@@ -50,6 +50,29 @@ def compare_ordering(items: list, ruleset: list, assert_msg: str):
     assert items == sorted_items, assert_msg
 
 
+def generate_new_admin_user() -> tuple[str, str]:
+    """Generates credentials for new admin user"""
+    username = "".join(
+        (
+            "admin_",
+            str(random.randrange(1000, 9999)),
+            str(random.randrange(1000, 9999)),
+        )
+    )
+    password = "_".join(
+        (
+            random.choice(
+                ["salty", "sweet", "sour", "mild", "spicy", "juicy"]
+            ),
+            random.choice(
+                ["cookie", "pie", "beef", "soup", "salad", "porridge"]
+            ),
+        )
+    )
+
+    return username, password
+
+
 def generate_new_geozone_entity(
     add_countries: list[str] | tuple[str] | None = None,
 ):
@@ -79,20 +102,24 @@ def generate_new_geozone_entity(
     return geozone
 
 
-def generate_new_product_entity():
+def generate_new_product_entity(
+    images: list[str] | tuple[str]
+):
     """Creates instance of Product entity clas
     with randomized name and properties.
     """
     name_suffix = str(uuid4()).replace("-", " ")
+
     return ProductEntity(
+        entity_id=None,
         name=f"Pillow {name_suffix}",
-        price=random.uniform(1.00, 1000.00),
+        price=round(random.uniform(1.00, 1000.00), 2),
+        sku=name_suffix[-8:],
         short_desc="Pokemon-themed pillow",
-        full_desc="""
-            Add a touch of cuteness and comfort to your home with this square
-            Pikachu head-shaped pillow. Made with premium quality materials,
-            this pillow is a must-have for any fan of the popular Pokémon
-            franchise.
+        full_desc="""Add a touch of cuteness and comfort to your home with
+            this square Pikachu head-shaped pillow. Made with premium quality
+            materials, this pillow is a must-have for any fan of the popular
+            Pokémon franchise.
 
             Its vibrant yellow color and adorable facial features accurately
             depict the iconic character, creating a charming addition to any
@@ -102,6 +129,6 @@ def generate_new_product_entity():
             provides optimum comfort for relaxation and easily complements any
             interior style. Embrace the lovable world of Pikachu with this
             delightful square pillow that brings both charm and coziness to
-            your home.
-        """,
+            your home.""",
+        images=images
     )

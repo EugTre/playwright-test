@@ -7,6 +7,7 @@ from utils.models.entry_lookup_strategy import (
     EntryLookupStrategy,
     EntryReadStrategy
 )
+from utils.models.base_entity import BackOfficeEntity
 from .base_element import BaseElement
 
 
@@ -78,13 +79,26 @@ class Table(BaseElement):
             self.log('Set default Lookup strategy to %s', lookup)
             self.lookup_strategy = lookup
         if texts:
-            self.log('Set default Get Texts strategy to %s', lookup)
-            self.get_texts_strategy = texts
+            self.log('Set default Get Texts strategy to %s', texts)
+            # Conver Lookup strategy entites to Read Strategy ones
+            self.get_texts_strategy = self._convert_lookup_strategy(texts)
         if values:
-            self.log('Set default Get Values strategy to %s', lookup)
-            self.get_values_strategy = values
+            self.log('Set default Get Values strategy to %s', values)
+            self.get_values_strategy = self._convert_lookup_strategy(values)
 
         return self
+
+    def _convert_lookup_strategy(
+        self,
+        strategies: list[EntryLookupStrategy] | tuple[EntryLookupStrategy]
+    ):
+        """Convert  Lookup strategy entites to Read Strategy objects"""
+        return tuple(
+            st
+            if isinstance(st, EntryReadStrategy) else
+            st.to_read_strategy()
+            for st in strategies
+        )
 
     # --- Getters
     def get_rows_locator(self, **locator_qualifiers) -> Locator:
@@ -101,7 +115,7 @@ class Table(BaseElement):
         """Returns number of rows in the table body"""
         return self.get_rows_locator(**locator_qualifiers).count()
 
-    def find_entry(self, target_values: dict[str, str],
+    def find_entry(self, table_entry: BackOfficeEntity,
                    strategies: tuple[EntryLookupStrategy] = None,
                    **locator_qualifiers) -> int:
         """Find given target values using given lookup strategy
@@ -125,6 +139,14 @@ class Table(BaseElement):
             int: row index (0-based) of found entry.
         """
         strategy = strategies if strategies else self.lookup_strategy
+        target_values = table_entry.get_lookup_params()
+
+        if not any(target_values.values()):
+            raise RuntimeError(
+                f"Impossible to look up for null entity {table_entry}! "
+                "At least 1 lookup field should not be None."
+            )
+
         js_expr, strategy_data = self._prepare_expression(
             JS_SNIPPET_FIND, strategy, target_values
         )
@@ -163,7 +185,7 @@ class Table(BaseElement):
     def get_entry_texts(
         self,
         row_idx: int,
-        strategy: tuple[EntryReadStrategy] = None,
+        strategy: tuple[EntryReadStrategy | EntryLookupStrategy] = None,
         **locator_qualifiers
     ) -> tuple[str]:
         """Returns text from given row using given get_text_strategy.
@@ -171,7 +193,8 @@ class Table(BaseElement):
         (e.g. from inner text, or from value of nested element).
 
         Args:
-            strategies (optional, tuple[EntryReadStrategy]): list of
+            strategies (optional,
+            tuple[EntryReadStrategy | EntryLookupStrategy] ): list of
             strategies to use. Defaults to strategies set with
             .set_default_strategies(texts=...) method
             **locator_qualifiers (optional): kwargs for formatting
@@ -183,7 +206,9 @@ class Table(BaseElement):
         Returns:
             int: row index (0-based) of found entry.
         """
-        if strategy is None:
+        if strategy:
+            strategy = self._convert_lookup_strategy(strategy)
+        else:
             strategy = self.get_texts_strategy
 
         return self._get_entry_data(
@@ -195,7 +220,7 @@ class Table(BaseElement):
     def get_entry_values(
         self,
         row_idx: int,
-        strategy: tuple[EntryReadStrategy] = None,
+        strategy: tuple[EntryReadStrategy | EntryLookupStrategy] = None,
         **locator_qualifiers
     ) -> tuple[str]:
         """Returns values from given row using given get_values_strategy.
@@ -203,11 +228,14 @@ class Table(BaseElement):
         (e.g. from inner text, or from value of nested element).
 
         Args:
-            strategies (optional, tuple[EntryReadStrategy]): list of
+            strategies (optional,
+            tuple[EntryReadStrategy | EntryLookupStrat]): list of
             strategies to use. Defaults to strategies set with
-            .set_default_strategies(values=...) method
+            .set_default_strategies(values=...) method.
+
             **locator_qualifiers (optional): kwargs for formatting
             base locator of the element.
+
 
         Raises:
             ValueError: if row was not found.
@@ -215,7 +243,9 @@ class Table(BaseElement):
         Returns:
             int: row index (0-based) of found entry.
         """
-        if strategy is None:
+        if strategy:
+            strategy = self._convert_lookup_strategy(strategy)
+        else:
             strategy = self.get_values_strategy
 
         return self._get_entry_data(

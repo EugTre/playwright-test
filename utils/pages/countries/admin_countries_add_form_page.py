@@ -8,7 +8,7 @@ from playwright.sync_api import Page, TimeoutError
 from utils.components import LinkAnnotatedField
 from utils.elements import Button
 
-from .admin_basic_category_page import AdminBasicCategoryPage
+from ..admin_basic_category_page import AdminBasicCategoryPage
 
 
 class AdminCountriesAddFormPage(AdminBasicCategoryPage):

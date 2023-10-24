@@ -17,10 +17,14 @@ pytest.register_assert_rewrite(
     "utils.pages.admin_appearance_template_page",
     "utils.pages.admin_appearance_favicon_page",
     "utils.pages.admin_catalog_page",
-    "utils.pages.admin_countries_page",
-    "utils.pages.admin_geozones_page",
-    "utils.pages.admin_geozones_add_form_page",
-    "utils.pages.admin_geozones_edit_form_page"
+    "utils.pages.countries.admin_countries_page",
+    "utils.pages.countries.admin_countries_add_form_page",
+    "utils.pages.geozones.admin_geozones_page",
+    "utils.pages.geozones.admin_geozones_add_form_page",
+    "utils.pages.geozones.admin_geozones_edit_form_page",
+    "utils.pages.catalog.admin_catalog_page",
+    "utils.pages.catalog.admin_catalog_add_form_page",
+    "utils.pages.catalog.admin_catalog_edit_form_page",
 
     # Helper
     "utils.helpers"
@@ -29,10 +33,12 @@ pytest.register_assert_rewrite(
 
 def pytest_addoption(parser):
     """Add CLI options for pytest"""
+
     parser.addoption("--maximized",
                      action="store_true",
                      default=False,
                      help="Run tests in maximized mode.")
+
     parser.addini("allure.console_errors_to_step",
                   "Attach browser console error to Allure step",
                   type='bool',
@@ -41,12 +47,18 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     """Configure pytest before tests execution"""
+
     config.addinivalue_line("markers",
                             "admin_category_page(name): sets name of category "
                             "page to retrieve")
+
     config.addinivalue_line("markers",
                             "new_geozone_options(add_countries): sets desired "
                             "options for 'new_geozone' fixture")
+
+    config.addinivalue_line("markers",
+                            "new_product_options(add_iamges): sets desired "
+                            "options for 'new_product' fixture")
 
     window_size = None
     if config.getoption("--maximized"):

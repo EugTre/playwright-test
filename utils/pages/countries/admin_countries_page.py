@@ -6,7 +6,7 @@ from playwright.sync_api import Page
 
 from utils.elements import Button, Table
 
-from .admin_basic_category_page import AdminBasicCategoryPage
+from ..admin_basic_category_page import AdminBasicCategoryPage
 from .admin_countries_add_form_page import AdminCountriesAddFormPage
 
 
