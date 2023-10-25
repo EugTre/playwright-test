@@ -6,5 +6,6 @@ class EntityType(StrEnum):
     during creation/deletion of the entities
     for tests"""
 
+    USER = auto()
     GEOZONE = auto()
     PRODUCT = auto()

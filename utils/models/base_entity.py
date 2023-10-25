@@ -8,8 +8,9 @@ from .entitiy_types import EntityType
 
 @dataclass
 class BackOfficeEntity(ABC):
-    """Protocol for entities that may be created
-    and deleted via API call """
+    """Abstract entity that:
+    - may be created and deleted via API call
+    - may be searched in table by some params"""
     entity_id: str | None
 
     @property

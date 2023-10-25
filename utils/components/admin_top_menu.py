@@ -39,3 +39,7 @@ class AdminTopMenu(BaseComponent):
         """
         self.log("Check breadcrumbs at top menu to contain %s", items)
         self.breadcrumbs.should_have_items(["Dashboard", *items])
+
+    def log_out(self):
+        """Clicks Log Out button"""
+        self.log_out_button.click()

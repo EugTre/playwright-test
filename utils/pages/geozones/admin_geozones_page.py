@@ -2,7 +2,6 @@
 # from logging import DEBUG
 
 import allure
-import pytest
 from playwright.sync_api import Page
 
 from utils.elements import Button, Label, Table
@@ -23,20 +22,6 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
         super().__init__(page)
 
         self.table = Table(page, "#content form table", "Geo Zones")
-        self.table.set_strategy(
-            lookup=(
-                EntryLookupStrategy(
-                    column=1, field="id", selector='input', by_text=False,
-                    is_primary_key=True
-                ),
-                EntryLookupStrategy(column=3, field="name"),
-                EntryLookupStrategy(column=4, field="zones")
-            ),
-            texts=(
-                EntryReadStrategy(column=3, selector="a"),
-                EntryReadStrategy(column=4)
-            )
-        )
 
         self.create_new_button = Button(
             page, "#main #content .card-action a", "Create New Geo Zone"
@@ -66,46 +51,31 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
     def breadcrumbs(self):
         return ("Geo Zones",)
 
+    @property
+    def table_row_lookup_strategy(self) -> tuple[EntryLookupStrategy]:
+        return (
+            EntryLookupStrategy(
+                column=1, field="id", selector='input', by_text=False,
+                is_primary_key=True
+            ),
+            EntryLookupStrategy(column=3, field="name"),
+            EntryLookupStrategy(column=4, field="zones")
+        )
+
+    @property
+    def table_get_row_text_strategy(self) -> tuple[EntryReadStrategy]:
+        return (
+            EntryReadStrategy(column=2),
+            EntryReadStrategy(column=3, selector="a"),
+            EntryReadStrategy(column=4)
+        )
+
     def _verify_page_items(self):
         super()._verify_page_items()
         self.header_title.should_have_text(self.header)
         self.table.should_be_visible()
 
     # --- Actions
-    def find_in_table(
-        self, entity: GeozoneEntity, update_entity_id: bool = False
-    ) -> int:
-        """Returns geozone row index and data (id, name, zones counter)
-        for row with given name in geozones table.
-
-        Args (exclusive):
-            entity (GeozoneEntity): entity to find.
-            update_entity_id (bool, optional). flag to update given entity
-            with found data. Defaults to False.
-
-        Returns:
-            tuple in format
-            (row_idx: int, entity_id: str, name: str, zones_count: int)"""
-        self.log(
-            "Looking for Geozones like: %s",
-            entity.get_lookup_params()
-        )
-
-        row_idx = self.table.find_entry(entity)
-        self.log("Found at row %s", row_idx)
-
-        if update_entity_id:
-            entity.entity_id = self.table.get_entry_texts(
-                row_idx, [EntryReadStrategy(column=2)]
-            )[0]
-
-        allure.attach(
-            f"At Row {row_idx}. Entity: {entity}",
-            "Entry Found", allure.attachment_type.TEXT
-        )
-
-        return row_idx
-
     def create_new(self) -> AdminGeozonesAddFormPage:
         """Clicks Create New Geozone button and
         returns Geozone Form page"""
@@ -123,13 +93,14 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
                 "Geozone identifier is not given ('geozone' or 'row_id')!"
             )
 
+        # Note:
+        # Shift row_idx +1 from 0-based index of py-array
+        # to 1-based of css selector
         if row_idx and entity.entity_id:
             self.geozone_edit_button.click(row=row_idx + 1)
             return AdminGeozonesEditFormPage(self.page, entity.entity_id)
 
         row_idx = self.find_in_table(entity, True)
-
-        # Shift +1 from 0-based index of py-array to 1-based of css selector
         self.geozone_edit_button.click(row=row_idx + 1)
         return AdminGeozonesEditFormPage(self.page, entity.entity_id)
 
@@ -148,12 +119,8 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
         """Check that geozone metadata matches to expected"""
 
         self.log("Checking table entry to match %s", entity)
-        with allure.step("Entry is in table"):
-            row_idx = self.find_in_table(entity)
-            self.table.entry_should_be_visible(row_idx)
-
-        data_name, data_zones_count = \
-            self.table.get_entry_texts(row_idx)
+        data_id, data_name, data_zones_count = \
+            self.get_row_text_for_entity(entity)
 
         with allure.step(f'Geozone name matches to "{entity.name}"'):
             assert entity.name == data_name, \
@@ -168,15 +135,9 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
                 'Number of zones mismatches for ' \
                 f'Geozone "{entity.name}" (ID: {entity.entity_id})'
 
-    @allure.step("Check that geozone is missing in the table")
-    def geozone_should_be_missing(self, entity: GeozoneEntity):
-        """Checks that table is missing geozone entry with same
-        id, name and zone count as given. Asserts otherwise.
-
-        Args:
-            entity (GeozoneEntity): geozone to look for.
-        """
-        with pytest.raises(
-            ValueError, match=r"There is no row with data like.*"
+        with allure.step(
+            f"Displayed ID match to actual ID {entity.entity_id}"
         ):
-            self.find_in_table(entity)
+            assert entity.entity_id == data_id, \
+                'Geozone displayed ID mismatches for ' \
+                f'Geozone "{entity.name}" (ID: {entity.entity_id})'

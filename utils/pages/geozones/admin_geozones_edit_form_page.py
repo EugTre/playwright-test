@@ -13,6 +13,7 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
 
     def __init__(self, page: Page, entity_id: str) -> None:
         super().__init__(page)
+
         self.entity_id = entity_id
 
         self.delete_button = Button(
@@ -32,7 +33,7 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
 
     @property
     def header(self):
-        return " Edit Geo Zone"
+        return "Edit Geo Zone"
 
     @property
     def breadcrumbs(self):
@@ -93,9 +94,9 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
         expect(self.page).to_have_url(self.url)
 
     @allure.step(
-        "Check that form contain data that matches " "to given geozone entity"
+        "Check that form contain data that matches to given geozone entity"
     )
-    def data_should_match_to(self, geozone: GeozoneEntity):
+    def form_data_should_match_to(self, geozone: GeozoneEntity):
         """Checks that data in the fields is matching given
         geozone entity"""
 
@@ -114,7 +115,7 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
         for expected_zone in geozone.zones:
             self.__validate_country_zone_entry(rows_content, expected_zone)
 
-    @allure.step("Table data of {zone_entity} country " "matches to expected")
+    @allure.step("Table data of {zone_entity} country matches to expected")
     def __validate_country_zone_entry(self, rows_content, zone_entity):
         zone = zone_entity.value
         city = zone_entity.city

@@ -4,7 +4,7 @@ from logging import DEBUG
 import allure
 from playwright.sync_api import Page
 
-from utils.elements import Button, Table
+from utils.elements import Button
 
 from ..admin_basic_category_page import AdminBasicCategoryPage
 from .admin_countries_add_form_page import AdminCountriesAddFormPage
@@ -19,8 +19,6 @@ class AdminCountriesPage(AdminBasicCategoryPage):
         self.create_new_button = Button(
             page, "#main #content .card-action a", "Create New Country"
         )
-
-        self.countries_table = Table(page, "#main #content table", "Countries")
 
     @property
     def url(self):
@@ -40,12 +38,12 @@ class AdminCountriesPage(AdminBasicCategoryPage):
 
     def _verify_page_items(self):
         super()._verify_page_items()
-        self.countries_table.should_be_visible()
+        self.table.should_be_visible()
 
     def get_countries(self) -> list:
         """Returns list of countries from table rows"""
         countries_names = [
-            row[0] for row in self.countries_table.get_rows_content([4])
+            row[0] for row in self.table.get_rows_content([4])
         ]
 
         self.log("Countries table has %s items", len(countries_names))
@@ -68,4 +66,4 @@ class AdminCountriesPage(AdminBasicCategoryPage):
     def country_list_size_should_be(self, size: int):
         """Asserts size of the countries list"""
         self.log("Checking size of the 'Countries' table to be %s", size)
-        self.countries_table.should_have_size_of(size)
+        self.table.should_have_size_of(size)

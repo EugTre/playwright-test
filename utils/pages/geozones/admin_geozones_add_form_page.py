@@ -7,10 +7,10 @@ from playwright.sync_api import Page
 from utils.elements import Button, Input, Select, Table
 from utils.models.admin_geozone import CountryZoneEntity, GeozoneEntity
 
-from ..admin_basic_category_page import AdminBasicCategoryPage
+from ..admin_basic_form_page import AdminBasicFormPage
 
 
-class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
+class AdminGeozonesAddFormPage(AdminBasicFormPage):
     """Admin -> Geo Zones page"""
 
     def __init__(self, page: Page) -> None:
@@ -96,32 +96,29 @@ class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
         )
 
     # --- Actions
-    @allure.step("Cancel form")
-    def cancel(self):
-        """Click Cancel button"""
-        self.log("Exiting form by 'Cancel' button")
-        self.cancel_button.click()
-
-    @allure.step("Populate 'Create New Geo Zone' form with entity data")
     def fill_from_entity(self, entity: GeozoneEntity) -> None:
         """Fill form fields using given Geozone entity as
         a value"""
-        self.log("Populating Create New Geo Zone form with %s", entity)
-        self.code_field.click_and_fill(entity.code)
-        self.name_field.click_and_fill(entity.name)
-        self.desc_field.click_and_fill(entity.description)
 
-        if not entity.zones:
-            return
+        with allure.step(
+            f'Populate "{self.header}" form with entity data'
+        ):
+            self.log("Populating Create New Geo Zone form with %s", entity)
+            self.code_field.click_and_fill(entity.code)
+            self.name_field.click_and_fill(entity.name)
+            self.desc_field.click_and_fill(entity.description)
 
-        for zone in entity.zones:
-            with allure.step(f"Adding zone for country {zone.value}"):
-                self.zone_country_select.click()
-                self.zone_country_select.select_option(value=zone.value)
-                self.zone_city_field.click_and_fill(zone.city)
-                self.zone_add_button.click()
+            if not entity.zones:
+                return
 
-        self.log("Form populated")
+            for zone in entity.zones:
+                with allure.step(f"Adding zone for country {zone.value}"):
+                    self.zone_country_select.click()
+                    self.zone_country_select.select_option(value=zone.value)
+                    self.zone_city_field.click_and_fill(zone.city)
+                    self.zone_add_button.click()
+
+            self.log("Form populated")
 
     @allure.step("Removing zones from table")
     def remove_zones(self, *zones: CountryZoneEntity) -> None:
@@ -158,12 +155,6 @@ class AdminGeozonesAddFormPage(AdminBasicCategoryPage):
                 self.log("Failed to find zone %s to remove", zone)
                 with allure.step(f"Failed to find {zone} in the table"):
                     pass
-
-    @allure.step("Save form")
-    def save(self) -> None:
-        """Clicks save button at form"""
-        self.log('Clicking "Save" button on form')
-        self.save_button.click()
 
     # --- Assertions
     @allure.step(

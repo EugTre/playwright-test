@@ -104,10 +104,6 @@ class TestAdminCategoriesCatalog:
                 messages.get("General OnCreateSuccess")
             )
 
-    @pytest.mark.new_product_options()
-    def test_xxx(self, new_product):
-        import logging
-        logging.info('TEST')
 
     # @allure.title("Existing Product may be viewed")
     # @pytest.mark.admin_category_page(AdminCategory.CATALOG)

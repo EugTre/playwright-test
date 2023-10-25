@@ -9,8 +9,11 @@ import pytest
 
 from constants import SUPERADMIN_PASSWORD, SUPERADMIN_USERNAME
 from utils.bdd import given, then, when
+
+from utils.models.admin_user import UserEntity
 from utils.pages import AdminLoginPage, AdminMainPage
 from utils.text_repository import messages
+from utils.steps import admin_users_steps
 
 
 @allure.epic("Admin")
@@ -103,21 +106,28 @@ class TestAdminLogin:
         self,
         attempts_to_login,
         message,
-        new_admin_user: tuple[str, str],
+        new_admin_user: UserEntity,
         admin_login_page: AdminLoginPage,
     ):
         """When using valid username user have limited number of
         attempts to log in"""
+        # Log in as superuser and find user by id
+        with given("valid admin user is created in the back office"):
+            admin_users_steps.find_user_exists(
+                admin_login_page, new_admin_user
+            )
+
         with given(
             "admin user with valid username but invalid password "
             "is at login page"
         ):
-            username, _ = new_admin_user
             admin_login_page.visit()
 
         with when(f"user tries to login for {attempts_to_login} times"):
             for _ in range(attempts_to_login):
-                admin_login_page.login(username, "not-a-password", False)
+                admin_login_page.login(
+                    new_admin_user.username, "not-a-password", False
+                )
 
         with then("user sees an error message"):
             admin_login_page.login_fail_banner_should_have_text(message)

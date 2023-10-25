@@ -5,20 +5,13 @@ from playwright.sync_api import Page
 
 from utils.models.admin_catalog import ProductEntity, ProductFormTab
 from utils.elements import Button, Input, Textarea
-from ..admin_basic_category_page import AdminBasicCategoryPage
+from ..admin_basic_form_page import AdminBasicFormPage
 
 
-class AdminCatalogAddFormPage(AdminBasicCategoryPage):
+class AdminCatalogAddFormPage(AdminBasicFormPage):
     """Represents Admin / Catalog / Create New Product form"""
     def __init__(self, page: Page) -> None:
         super().__init__(page)
-
-        self.save_button = Button(
-            page, "#content .card-action button[name='save']", "Save"
-        )
-        self.cancel_button = Button(
-            page, "#content .card-action button[name='cancel']", "Cancel"
-        )
 
         self.active_tab = Button(
             page, "#content nav a.active",
@@ -101,46 +94,35 @@ class AdminCatalogAddFormPage(AdminBasicCategoryPage):
         self.general_add_image_button.should_be_visible()
 
     # --- Actions
-    @allure.step("Populate 'Create New Product' form with entity data")
     def fill_from_entity(self, entity: ProductEntity) -> None:
         """Fills required fields to create valid product
         available from Frontend"""
 
         self.log("Pupulating Create New Product form with data %s", entity)
+        with allure.step(
+            f'Populate "{self.header}" form with entity data'
+        ):
+            self.switch_tab(ProductFormTab.GENERAL)
+            self.general_name_input.click_and_fill(entity.name)
+            self.general_price_input.click_and_fill(entity.price)
+            self.general_sku_input.click_and_fill(entity.sku)
 
-        self.switch_tab(ProductFormTab.GENERAL)
-        self.general_name_input.click_and_fill(entity.name)
-        self.general_price_input.click_and_fill(entity.price)
-        self.general_sku_input.click_and_fill(entity.sku)
+            for img_path in entity.images:
+                self.general_add_image_button.click()
+                with self.page.expect_file_chooser() as fc:
+                    self.general_new_image_last_input.click()
 
-        for img_path in entity.images:
-            self.general_add_image_button.click()
-            with self.page.expect_file_chooser() as fc:
-                self.general_new_image_last_input.click()
+                chooser = fc.value
+                chooser.set_files(img_path)
 
-            chooser = fc.value
-            chooser.set_files(img_path)
+            self.switch_tab(ProductFormTab.INFORMATION)
+            self.info_short_desc_input.click_and_fill(entity.short_desc)
+            self.info_desc_input.click_and_fill(entity.full_desc)
 
-        self.switch_tab(ProductFormTab.INFORMATION)
-        self.info_short_desc_input.click_and_fill(entity.short_desc)
-        self.info_desc_input.click_and_fill(entity.full_desc)
-
-        self.switch_tab(ProductFormTab.STOCK)
-        self.stock_quantity.click_and_fill(50)
+            self.switch_tab(ProductFormTab.STOCK)
+            self.stock_quantity.click_and_fill(50)
 
         self.log("Form Create New Product populated")
-
-    @allure.step("Save form")
-    def save(self) -> None:
-        """Clicks Save button"""
-        self.log('Clicking "Save" button on form')
-        self.save_button.click()
-
-    @allure.step("Cancel form")
-    def cancel(self) -> None:
-        """Clicks Cancel button"""
-        self.log('Clicking "Cancel" button on form')
-        self.cancel_button.click()
 
     @allure.step('Switching form tab to "{tab_name}"')
     def switch_tab(self, tab_name: ProductFormTab) -> None:

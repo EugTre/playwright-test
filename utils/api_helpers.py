@@ -13,11 +13,16 @@ from utils import helpers
 
 
 GENERATOR_FUNCTIONS_PER_TYPE = {
+    EntityType.USER: helpers.generate_new_admin_user,
     EntityType.GEOZONE: helpers.generate_new_geozone_entity,
     EntityType.PRODUCT: helpers.generate_new_product_entity
 }
 
 REQUESTS_PER_ENTITY_TYPE = {
+    EntityType.USER: {
+        "create": "/admin/?app=users&doc=edit_user",
+        "delete": "/admin/?app=users&doc=edit_user&user_id={entity_id}"
+    },
     EntityType.GEOZONE: {
         "create": "/admin/?app=geo_zones&doc=edit_geo_zone",
         "delete":
@@ -63,32 +68,32 @@ def prepare_logged_admin_session(
     return session
 
 
-def create_admin_user(
-    base_url: str, username: str, password: str
-) -> tuple[str, str]:
-    """Creates new admin user by API call"""
-    new_username, new_password = helpers.generate_new_admin_user()
+# def create_admin_user(
+#     base_url: str, username: str, password: str
+# ) -> tuple[str, str]:
+#     """Creates new admin user by API call"""
+#     new_username, new_password = helpers.generate_new_admin_user()
 
-    session = prepare_logged_admin_session(
-        base_url, username, password
-    )
+#     session = prepare_logged_admin_session(
+#         base_url, username, password
+#     )
 
-    session.post(
-        f"{base_url}/admin/?app=users&doc=edit_user&page=1",
-        data={
-            "username": new_username,
-            "password": new_password,
-            "confirmed_password": new_password,
-            "date_valid_from": "2023-09-20T00:00",
-            "date_valid_to": "2025-09-20T00:00",
-            "email": "",
-            "status": "1",
-            "save": "Save"
-        },
-        timeout=10,
-    )
+#     session.post(
+#         f"{base_url}/admin/?app=users&doc=edit_user&page=1",
+#         data={
+#             "username": new_username,
+#             "password": new_password,
+#             "confirmed_password": new_password,
+#             "date_valid_from": "2023-09-20T00:00",
+#             "date_valid_to": "2025-09-20T00:00",
+#             "email": "",
+#             "status": "1",
+#             "save": "Save"
+#         },
+#         timeout=10,
+#     )
 
-    return (new_username, new_password)
+#     return (new_username, new_password)
 
 
 def create_entity_request(
@@ -101,7 +106,7 @@ def create_entity_request(
     request_url = REQUESTS_PER_ENTITY_TYPE[entity_type]["create"]
     payload = entity.as_payload()
 
-    session.post(
+    response = session.post(
         f"{base_url}{request_url}",
         data={
             **payload,
@@ -109,6 +114,12 @@ def create_entity_request(
         },
         timeout=10,
     )
+
+    assert response.status_code == 200, \
+        "Failed to create entity by API call. " \
+        f"API returns code {response.status_code}."
+
+    logging.info("Entity creation API call succeeded!")
 
 
 def get_new_entity(
@@ -131,21 +142,28 @@ def get_new_entity(
         password (str): admin password to user.
 
     Yields:
-        _type_: _description_
+        BackOfficeEntity: generated entity that was created on backend.
     """
-
-    logging.info("Creating new entity")
     entity_generator = GENERATOR_FUNCTIONS_PER_TYPE[entity_type]
-    entity = entity_generator(**options)
+    if options is not None:
+        entity = entity_generator(**options)
+    else:
+        entity = entity_generator()
+
+    logging.info(
+        "Creating new %s entity for test: %s",
+        entity_type.value,
+        entity
+    )
 
     session = prepare_logged_admin_session(
         base_url, username, password
     )
-    create_entity_request(entity_type, entity, session, base_url, )
+    create_entity_request(entity_type, entity, session, base_url)
 
     yield entity
 
-    logging.info("On Teardown - deleting entity")
+    logging.info("On Teardown: deleting entity %s", entity)
     delete_entity(entity, session, base_url)
 
 
@@ -162,6 +180,7 @@ def delete_entities(
     )
 
     for entity in entities:
+        logging.info("On Teardown: Deleting entity %s", entity)
         with allure.step(
             f"Sending API request to delete entity {entity}"
         ):

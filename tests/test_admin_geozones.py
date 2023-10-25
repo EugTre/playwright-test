@@ -147,7 +147,7 @@ class TestAdminCategoriesGeozones:
             edit_form.url_should_contain_entity_id()
 
         with then("form is populated with expected data"):
-            edit_form.data_should_match_to(new_geozone)
+            edit_form.form_data_should_match_to(new_geozone)
 
         with then("added countries are ordered ascending with special rules"):
             countries = edit_form.get_added_countries_names()
@@ -210,7 +210,7 @@ class TestAdminCategoriesGeozones:
 
         with then("user can Edit zone again and see new values in Form"):
             edit_form = admin_category_page.edit_entry(new_geozone)
-            edit_form.data_should_match_to(new_geozone)
+            edit_form.form_data_should_match_to(new_geozone)
 
     @allure.title("Existing Geo Zone may be deleted")
     @pytest.mark.admin_category_page(AdminCategory.GEOZONES)
@@ -249,4 +249,4 @@ class TestAdminCategoriesGeozones:
             )
 
         with then("deleted Geo Zone is not listed in table"):
-            admin_category_page.geozone_should_be_missing(new_geozone)
+            admin_category_page.table_entry_should_be_missing(new_geozone)

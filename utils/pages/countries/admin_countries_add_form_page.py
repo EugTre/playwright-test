@@ -8,20 +8,14 @@ from playwright.sync_api import Page, TimeoutError
 from utils.components import LinkAnnotatedField
 from utils.elements import Button
 
-from ..admin_basic_category_page import AdminBasicCategoryPage
+from ..admin_basic_form_page import AdminBasicFormPage
 
 
-class AdminCountriesAddFormPage(AdminBasicCategoryPage):
+class AdminCountriesAddFormPage(AdminBasicFormPage):
     """Admin -> Countries -> Create New Country page"""
 
     def __init__(self, page: Page) -> None:
         super().__init__(page)
-        self.save_button = Button(
-            page, "#content .card-action button[name=save]", "Save"
-        )
-        self.cancel_button = Button(
-            page, "#content .card-action button[name=cancel]", "Cancel"
-        )
 
         self.satatus_enabled_button = Button(
             page, "form input[name=status][value=1]", "Enabled"
@@ -117,11 +111,6 @@ class AdminCountriesAddFormPage(AdminBasicCategoryPage):
         self.address_format_field.should_be_visible()
 
     # --- Actions
-    @allure.step("Cancel form")
-    def cancel(self):
-        """Click Cancel button"""
-        self.log("Exiting form by 'Cancel' button")
-        self.cancel_button.click()
 
     # --- Assertions
     @allure.step("Check that fields have labels with links")

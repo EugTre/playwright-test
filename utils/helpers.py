@@ -3,6 +3,7 @@ import random
 from uuid import uuid4
 from copy import copy
 
+from utils.models.admin_user import UserEntity
 from utils.models.admin_geozone import CountryZoneEntity, GeozoneEntity
 from utils.models.admin_catalog import ProductEntity
 
@@ -70,7 +71,11 @@ def generate_new_admin_user() -> tuple[str, str]:
         )
     )
 
-    return username, password
+    return UserEntity(
+        entity_id=None,
+        username=username,
+        password=password,
+    )
 
 
 def generate_new_geozone_entity(

@@ -139,6 +139,13 @@ class Table(BaseElement):
             int: row index (0-based) of found entry.
         """
         strategy = strategies if strategies else self.lookup_strategy
+        for st in strategy:
+            if isinstance(st, EntryReadStrategy):
+                raise RuntimeError(
+                    "EntryReadStrategy should not be used "
+                    "for Entry Lookup (.find_entry)!"
+                )
+
         target_values = table_entry.get_lookup_params()
 
         if not any(target_values.values()):
@@ -166,12 +173,12 @@ class Table(BaseElement):
             )
 
         if row_idx is None:
-            current_table_content = [
+            current_table_content = "\n".join([
                 f"  {i:>3}) {cnt}"
                 for i, cnt in enumerate(
                     self.get_rows_content(row_idx, **locator_qualifiers)
                 )
-            ]
+            ])
             raise ValueError(
                 f"There is no row with data like {target_values}, "
                 f"in the {self.name}!\n"
@@ -331,7 +338,7 @@ class Table(BaseElement):
     def _prepare_expression(
         self,
         snippet,
-        strategies: tuple[EntryReadStrategy | EntryLookupStrategy],
+        strategy: tuple[EntryReadStrategy | EntryLookupStrategy],
         loadout: dict[str, str] | None = None
     ) -> str:
         """Prepares JS expression using given snippet and strategy.
@@ -341,9 +348,9 @@ class Table(BaseElement):
             str: ready to use JS code.
         """
         strategy_gen = \
-            (st.prepare_strategy_data(loadout) for st in strategies) \
+            (st.prepare_strategy_data(loadout) for st in strategy) \
             if loadout else \
-            (st.prepare_strategy_data() for st in strategies)
+            (st.prepare_strategy_data() for st in strategy)
 
         strategy_data = [st for st in strategy_gen if st is not None]
 

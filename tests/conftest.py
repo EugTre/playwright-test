@@ -53,16 +53,19 @@ def admin_category_page(request, prepared_page) -> AdminBasicCategoryPage:
 @pytest.fixture
 def new_admin_user(base_url: str) -> tuple[str, str]:
     """Creates new admin user by API call"""
-    # Generate username and password
-    user = api.create_admin_user(
-        base_url, SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
+    yield from api.get_new_entity(
+        entity_type=EntityType.USER,
+        options=None,
+        base_url=base_url,
+        username=SUPERADMIN_USERNAME,
+        password=SUPERADMIN_PASSWORD
     )
-    logging.info("[Fixture] Created New Admin user for test: %s", user)
-    return user
 
 
 @pytest.fixture
 def new_geozone(request, base_url: str) -> GeozoneEntity:
+    """Generates new geozone entity for tests and handling
+    it's deletion afterwards"""
     options = {
         "add_countries": None
     }
@@ -71,13 +74,18 @@ def new_geozone(request, base_url: str) -> GeozoneEntity:
         options.update(marker.kwargs)
 
     yield from api.get_new_entity(
-        EntityType.GEOZONE, options, base_url,
-        SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
+        entity_type=EntityType.GEOZONE,
+        options=options,
+        base_url=base_url,
+        username=SUPERADMIN_USERNAME,
+        password=SUPERADMIN_PASSWORD
     )
 
 
 @pytest.fixture
 def new_product(request, base_url: str) -> ProductEntity:
+    """Generates new product entity for tests and handling
+    it's deletion afterwards"""
     options = {
         "images": None
     }
@@ -87,14 +95,17 @@ def new_product(request, base_url: str) -> ProductEntity:
         options.update(marker.kwargs)
 
     yield from api.get_new_entity(
-        EntityType.PRODUCT, options, base_url,
-        SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
+        entity_type=EntityType.PRODUCT,
+        options=options,
+        base_url=base_url,
+        username=SUPERADMIN_USERNAME,
+        password=SUPERADMIN_PASSWORD
     )
 
 
 @pytest.fixture
 def handle_entities(base_url: str):
-    """Deletes object of HandledEntity protocol (e.g. GeozoneEntity,
+    """Deletes object of BackOfficeEntity (e.g. GeozoneEntity,
     ProductEntity) after a test"""
     pool: list[BackOfficeEntity] = []
     yield pool
