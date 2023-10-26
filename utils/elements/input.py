@@ -80,4 +80,5 @@ class Input(BaseElement):
             f"{self.type_of.capitalize()} with name "
             f'"{self.name}" should have value "{value_to_log}"'
         ):
-            expect(self.get_locator(**locator_qualifiers)).to_have_value(value)
+            expect(self.get_locator(**locator_qualifiers)) \
+                .to_have_value(value)

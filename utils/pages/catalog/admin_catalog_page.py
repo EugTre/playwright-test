@@ -4,9 +4,10 @@ import allure
 from playwright.sync_api import Page
 from utils.models.admin_catalog import ProductEntity
 from utils.models.entry_lookup_strategy import EntryLookupStrategy
-from utils.elements import Table, Button, Label
+from utils.elements import Button, Label
 from ..admin_basic_category_page import AdminBasicCategoryPage
 from .admin_catalog_add_form_page import AdminCatalogAddFormPage
+from .admin_catalog_edit_form_page import AdminCatalogEditFormPage
 
 
 # Table Lookup/Read strategy params
@@ -34,18 +35,16 @@ class AdminCatalogPage(AdminBasicCategoryPage):
     def __init__(self, page: Page) -> None:
         super().__init__(page)
 
-        self.table = Table(
-            page, "#content form table",
-            "Products"
-        )
-        self.table.set_strategy(
-            lookup=TABLE_STRATEGIES,
-            texts=TABLE_STRATEGIES
-        )
         self.crete_product_button = Button(
             page, "#content .card-action li:last-child a",
             "Create New Product"
         )
+
+        self.product_edit_button = Button(
+            page, "#content form tbody tr:nth-child({row}) a.btn[title=Edit]",
+            "Edit"
+        )
+
         self.notification_banner = Label(
             page, ".alert-success", "Notification banner"
         )
@@ -66,70 +65,63 @@ class AdminCatalogPage(AdminBasicCategoryPage):
     def breadcrumbs(self):
         return ("Catalog",)
 
+    @property
+    def table_row_lookup_strategy(self) -> tuple[EntryLookupStrategy]:
+        return (
+            self.entity_id_get_value_strategy,
+            EntryLookupStrategy(column=4, field="name", selector="a"),
+            EntryLookupStrategy(column=5, field="sku"),
+            EntryLookupStrategy(
+                column=6, field="price",
+                # Remove currency tag before comparison
+                apply_expression="value.substr(1)"
+            )
+        )
+
     def _verify_page_items(self):
         super()._verify_page_items()
         self.crete_product_button.should_be_visible()
         self.table.should_be_visible()
 
-    # --- Utilities
-    def find_in_table(
-        self,
-        entity: ProductEntity,
-        update_entity_id: bool = False
-    ) -> int:
-        """Returns geozone row index and data (id, name, zones counter)
-        for row with given name in geozones table.
-
-        Args (exclusive):
-            entity (ProductEntity): entity to find.
-            update_entity_id (bool, optional). flag to update given entity
-            with found data. Defaults to False.
-
-        Returns:
-            tuple in format
-            (row_idx: int, entity_id: str, name: str, zones_count: int)"""
-
-        self.log(
-            "Looking for Product like: %s",
-            entity.get_lookup_params()
-        )
-
-        row_idx = self.table.find_entry(entity)
-        self.log(row_idx)
-
-        if update_entity_id:
-            entity.entity_id = self.table.get_entry_texts(
-                row_idx=row_idx,
-                strategy=[
-                    ID_LOOKUP_STRATEGY
-                ]
-            )[0]
-
-        allure.attach(
-            f"At Row {row_idx}. Entity: {entity}",
-            "Entry Found", allure.attachment_type.TEXT
-        )
-
-        return row_idx
-
     # -- Actions
     @allure.step('Opening Create new product form')
-    def open_create_product_form(self) -> AdminCatalogAddFormPage:
+    def create_new_product(self) -> AdminCatalogAddFormPage:
         """Click "Create New Product" button and
         return AdminCatalogAddFormPage"""
         self.crete_product_button.click()
         return AdminCatalogAddFormPage(self.page)
 
+    def edit_entry(
+        self,
+        entity: ProductEntity,
+        row_idx: str | None = None,
+    ) -> AdminCatalogEditFormPage:
+        """Clickes Edit button for selected geozone (by id or by name)"""
+        if entity is None and row_idx is None:
+            raise ValueError(
+                "Product identifier is not given "
+                "(product entity or row index)!"
+            )
+
+        if not row_idx or not entity.entity_id:
+            row_idx = self.find_in_table(entity, True)
+
+        # Note:
+        # Shift row_idx +1 from 0-based index of py-array
+        # to 1-based of css selector
+        self.product_edit_button.click(row=row_idx + 1)
+        return AdminCatalogEditFormPage(
+            self.page, entity.entity_id, entity.name
+        )
+
     # -- Asserts
     @allure.step("Check that product table data matches to expected")
     def table_entry_data_should_match(self, entity: ProductEntity):
         """Check that entry table data matches to expected"""
-        with allure.step("Entry is in table"):
-            row_idx = self.find_in_table(entity)
-            self.table.entry_should_be_visible(row_idx)
 
+        self.log("Checking table entry to match %s", entity)
         _, data_name, data_sku, data_price = \
-            self.table.get_entry_texts(row_idx)
+            self.get_row_text_for_entity(entity)
 
         with allure.step(f'Product name matches to "{entity.name}"'):
             assert entity.name == data_name, \
@@ -142,7 +134,7 @@ class AdminCatalogPage(AdminBasicCategoryPage):
                 f'"{entity.name}" (ID: {entity.entity_id})'
 
         with allure.step(f'Product Price matches to "{entity.price}"'):
-            assert str(entity.price) == data_price, \
+            assert f"{entity.price:.2f}" == data_price, \
                 'Price value mismatches for ' \
                 f'"{entity.name}" (ID: {entity.entity_id})'
 

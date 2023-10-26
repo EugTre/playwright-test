@@ -108,7 +108,7 @@ def generate_new_geozone_entity(
 
 
 def generate_new_product_entity(
-    images: list[str] | tuple[str]
+    add_images: list[str] | tuple[str]
 ):
     """Creates instance of Product entity clas
     with randomized name and properties.
@@ -135,5 +135,5 @@ def generate_new_product_entity(
             interior style. Embrace the lovable world of Pikachu with this
             delightful square pillow that brings both charm and coziness to
             your home.""",
-        images=images
+        images=add_images
     )

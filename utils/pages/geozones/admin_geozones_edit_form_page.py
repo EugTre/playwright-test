@@ -29,7 +29,7 @@ class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
 
     @property
     def name(self):
-        return "Admin/Countries/EditForm"
+        return "Admin/GeoZones/EditForm"
 
     @property
     def header(self):

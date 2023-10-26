@@ -57,7 +57,9 @@ class AdminBasicCategoryPage(BasePage):
     @property
     def entity_id_get_value_strategy(self) -> EntryReadStrategy:
         """Returns value get strategy for entity ID"""
-        return EntryLookupStrategy(1, "id", "input", by_text=False)
+        return EntryLookupStrategy(
+            1, "id", "input", by_text=False, is_primary_key=True
+        )
 
     @property
     def table_row_lookup_strategy(self) -> tuple[EntryLookupStrategy]:

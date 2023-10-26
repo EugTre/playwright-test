@@ -23,11 +23,11 @@ class AdminCatalogAddFormPage(AdminBasicFormPage):
         )
 
         self.general_name_input = Input(
-            page, "#tab-general input[name*=name]",
+            page, "#tab-general input[name='name[en]']",
             "General/Name"
         )
         self.general_price_input = Input(
-            page, "#tab-general input[name*=price]",
+            page, "#tab-general input[name='prices[USD]']",
             "General/Price"
         )
         self.general_sku_input = Input(
@@ -120,7 +120,7 @@ class AdminCatalogAddFormPage(AdminBasicFormPage):
             self.info_desc_input.click_and_fill(entity.full_desc)
 
             self.switch_tab(ProductFormTab.STOCK)
-            self.stock_quantity.click_and_fill(50)
+            self.stock_quantity.click_and_fill(entity.quantity)
 
         self.log("Form Create New Product populated")
 

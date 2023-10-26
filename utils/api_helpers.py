@@ -20,16 +20,25 @@ GENERATOR_FUNCTIONS_PER_TYPE = {
 
 REQUESTS_PER_ENTITY_TYPE = {
     EntityType.USER: {
-        "create": "/admin/?app=users&doc=edit_user",
+        "create": {
+            "url": "/admin/?app=users&doc=edit_user",
+            "as_url_encoded": True
+        },
         "delete": "/admin/?app=users&doc=edit_user&user_id={entity_id}"
     },
     EntityType.GEOZONE: {
-        "create": "/admin/?app=geo_zones&doc=edit_geo_zone",
+        "create": {
+            "url": "/admin/?app=geo_zones&doc=edit_geo_zone",
+            "as_url_encoded": True
+        },
         "delete":
             "/admin/?app=geo_zones&doc=edit_geo_zone&geo_zone_id={entity_id}",
     },
     EntityType.PRODUCT: {
-        "create": "",
+        "create": {
+            "url": "/admin/?category_id=0&app=catalog&doc=edit_product",
+            "as_url_encoded": False
+        },
         "delete":
             "/admin/?app=catalog&doc=edit_product&category_id=0"
             "&product_id={entity_id}"
@@ -52,48 +61,21 @@ def prepare_logged_admin_session(
         requests.Session: authorized session.
     """
     session = requests.session()
-    session.headers.update(
-        {"Content-Type": "application/x-www-form-urlencoded"}
-    )
 
     base_url = base_url.rstrip("/")
     session.post(
         f"{base_url}/admin/login.php",
-        data="login=true&redirect_url=&login=Login"
-        f"&username={username}&password={password}",
+        data={
+            "redirect_url": "",
+            "login": "Login",
+            "username": username,
+            "password": password
+        },
         allow_redirects=False,
         timeout=10,
     )
 
     return session
-
-
-# def create_admin_user(
-#     base_url: str, username: str, password: str
-# ) -> tuple[str, str]:
-#     """Creates new admin user by API call"""
-#     new_username, new_password = helpers.generate_new_admin_user()
-
-#     session = prepare_logged_admin_session(
-#         base_url, username, password
-#     )
-
-#     session.post(
-#         f"{base_url}/admin/?app=users&doc=edit_user&page=1",
-#         data={
-#             "username": new_username,
-#             "password": new_password,
-#             "confirmed_password": new_password,
-#             "date_valid_from": "2023-09-20T00:00",
-#             "date_valid_to": "2025-09-20T00:00",
-#             "email": "",
-#             "status": "1",
-#             "save": "Save"
-#         },
-#         timeout=10,
-#     )
-
-#     return (new_username, new_password)
 
 
 def create_entity_request(
@@ -103,17 +85,27 @@ def create_entity_request(
     base_url: str
 ) -> None:
     """API request to create new product from provided ProductEntity."""
-    request_url = REQUESTS_PER_ENTITY_TYPE[entity_type]["create"]
-    payload = entity.as_payload()
+    request_url = REQUESTS_PER_ENTITY_TYPE[entity_type]["create"]["url"]
+    as_url_encoded = \
+        REQUESTS_PER_ENTITY_TYPE[entity_type]["create"]["as_url_encoded"]
 
-    response = session.post(
-        f"{base_url}{request_url}",
-        data={
-            **payload,
+    request_params = {
+        "url": f"{base_url}{request_url}",
+        "timeout": 10
+    }
+
+    if as_url_encoded:
+        request_params["data"] = {
+            **entity.as_payload(),
             "save": "Save"
-        },
-        timeout=10,
-    )
+        }
+    else:
+        request_params["files"] = {
+            **entity.as_payload(),
+            "save": (None, "Save")
+        }
+
+    response = session.post(**request_params)
 
     assert response.status_code == 200, \
         "Failed to create entity by API call. " \

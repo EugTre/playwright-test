@@ -179,11 +179,14 @@ class Table(BaseElement):
                     self.get_rows_content(row_idx, **locator_qualifiers)
                 )
             ])
+            strategy_info = "\n  ".join([str(st) for st in strategy])
             raise ValueError(
                 f"There is no row with data like {target_values}, "
                 f"in the {self.name}!\n"
                 "Table content:\n"
-                f"  {current_table_content}"
+                f"  {current_table_content}\n"
+                "Strategy:\n"
+                f"  {strategy_info}"
             )
 
         self.log('Find Entry resulted in ROW IDX: %s', row_idx)

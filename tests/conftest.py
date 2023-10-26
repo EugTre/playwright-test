@@ -87,7 +87,7 @@ def new_product(request, base_url: str) -> ProductEntity:
     """Generates new product entity for tests and handling
     it's deletion afterwards"""
     options = {
-        "images": None
+        "add_images": None
     }
 
     marker = request.node.get_closest_marker("new_product_options")

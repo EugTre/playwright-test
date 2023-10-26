@@ -93,14 +93,12 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
                 "Geozone identifier is not given ('geozone' or 'row_id')!"
             )
 
+        if not row_idx or not entity.entity_id:
+            row_idx = self.find_in_table(entity, True)
+
         # Note:
         # Shift row_idx +1 from 0-based index of py-array
         # to 1-based of css selector
-        if row_idx and entity.entity_id:
-            self.geozone_edit_button.click(row=row_idx + 1)
-            return AdminGeozonesEditFormPage(self.page, entity.entity_id)
-
-        row_idx = self.find_in_table(entity, True)
         self.geozone_edit_button.click(row=row_idx + 1)
         return AdminGeozonesEditFormPage(self.page, entity.entity_id)
 
