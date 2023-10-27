@@ -21,7 +21,7 @@ from .metadata import EPIC, FEATURE, STORY
 @allure.story(STORY)
 @pytest.mark.admin_category_page(AdminCategory.CATALOG)
 @pytest.mark.new_product_options(add_images=PRODUCT_IMAGES)
-def test_create(
+def test_delete(
     admin_category_page: AdminCatalogPage,
     new_product: ProductEntity
 ):

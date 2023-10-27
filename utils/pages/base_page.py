@@ -71,11 +71,6 @@ class BasePage(ABC):
         with allure.step(f"Visiting {target_url}"):
             response = self.page.goto(target_url, wait_until="networkidle")
 
-            # If visit invoked to navigate to current page
-            # verifiy that page have expected elements
-            if url is None:
-                self.verify_page()
-
         self.log("URL: %s is visited", target_url)
 
         return response
@@ -92,3 +87,10 @@ class BasePage(ABC):
             self.page.reload(wait_until="domcontentloaded")
 
         self.log("Page (URL: %s) reloaded", self.page.url)
+
+    @allure.step("Snapshot of page visually matches to expected")
+    def should_match_snapshot(self) -> None:
+        """Checks page snapshot (screenshot) to match to
+        'golden' snapshot"""
+        self.log("Checking visual snapshot of the page")
+        self.page.assert_snapshot()

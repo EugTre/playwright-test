@@ -20,7 +20,7 @@ class Link(BaseElement):
         return href
 
     def should_have_value(self, value, **locator_qualifiers):
-        """Checks that input contains given value.
+        """Checks that link href equals to given value.
 
         Args:
             value (str): link value.

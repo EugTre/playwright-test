@@ -56,11 +56,16 @@ class ProductEntity(BackOfficeEntity):
            - sku
            - price
         """
+
+        price = f"{self.price:.2f}"
+        if round(self.price) == self.price:
+            price = f"{round(self.price)}"
+
         return {
             "id": self.entity_id,
             "name": self.name,
             "sku": self.sku,
-            "price": f"{self.price:.2f}"
+            "price": price
         }
 
     def as_payload(self) -> dict[str, str]:

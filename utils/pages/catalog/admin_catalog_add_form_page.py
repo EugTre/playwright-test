@@ -39,10 +39,10 @@ class AdminCatalogAddFormPage(AdminBasicFormPage):
             "General/Add Image"
         )
 
-        self.general_new_image_last_input = Input(
+        self.general_new_image_file_input = Input(
             page,
             "#tab-general #images div.new-images "
-            "div.image:last-child input",
+            "div.image input",
             "General/Last New Image"
         )
         self.general_new_image_index_input = Input(
@@ -56,7 +56,6 @@ class AdminCatalogAddFormPage(AdminBasicFormPage):
             page, "#tab-information input[name*=short_description]",
             "Information/Short Description"
         )
-        # TODO: Replace with click and send keys
         self.info_desc_input = Textarea(
             page, "#tab-information textarea[name^=description]",
             "Information/Description"
@@ -110,7 +109,7 @@ class AdminCatalogAddFormPage(AdminBasicFormPage):
             for img_path in entity.images:
                 self.general_add_image_button.click()
                 with self.page.expect_file_chooser() as fc:
-                    self.general_new_image_last_input.click()
+                    self.general_new_image_file_input.get_last().click()
 
                 chooser = fc.value
                 chooser.set_files(img_path)

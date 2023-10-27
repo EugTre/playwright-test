@@ -27,6 +27,7 @@ def test_order(admin_category_page: AdminCountriesPage):
 
     with when("list of countries is loaded"):
         admin_category_page.verify_page()
+        admin_category_page.should_match_snapshot()
 
     with then("list of countries is not empty and contain 243 items"):
         admin_category_page.country_list_size_should_be(243)

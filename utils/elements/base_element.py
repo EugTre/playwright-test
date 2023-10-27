@@ -36,6 +36,16 @@ class BaseElement(ABC):
         self.log("Locator found (%s)", locator)
         return locator
 
+    def get_first(self,  **locator_qualifiers) -> Locator:
+        """Returns Locator by getting 'first' property of
+        the element locator"""
+        return self.get_locator(**locator_qualifiers).first
+
+    def get_last(self, **locator_qualifiers) -> Locator:
+        """Returns Locator by getting 'last' property of
+        the element locator"""
+        return self.get_locator(**locator_qualifiers).last
+
     # --- Actions
     def click(self, **locator_qualifiers) -> None:
         """Clicks on element."""

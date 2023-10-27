@@ -18,6 +18,8 @@ def test_login(admin_login_page: AdminLoginPage):
         username = SUPERADMIN_USERNAME
         password = SUPERADMIN_PASSWORD
         admin_login_page.visit()
+        admin_login_page.verify_page()
+        admin_login_page.should_match_snapshot()
 
     with when("user puts valid creds and presses Login button"):
         admin_page: AdminMainPage = admin_login_page.login(

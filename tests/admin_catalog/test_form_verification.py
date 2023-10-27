@@ -26,6 +26,7 @@ def test_form_verification(admin_category_page: AdminCatalogPage):
         form: AdminCatalogAddFormPage = (
             admin_category_page.create_new_product()
         )
+        form.should_match_snapshot()
 
     with then(
         "form 'Create New Product' is opened, "

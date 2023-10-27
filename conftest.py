@@ -39,6 +39,17 @@ def pytest_addoption(parser):
                      default=False,
                      help="Run tests in maximized mode.")
 
+    parser.addoption("--skip-snapshot-check",
+                     action="store_true",
+                     default=False,
+                     help="Optional flag to disable actual snapshot "
+                     "verification (to save some time during debug)")
+    parser.addoption("--snapshot-threshold",
+                     action="store",
+                     type=float,
+                     default=0.3,
+                     help="Snapshot comparison threshold in range 0...1.")
+
     parser.addini("allure.console_errors_to_step",
                   "Attach browser console error to Allure step",
                   type='bool',
@@ -72,6 +83,9 @@ def pytest_configure(config):
         window_size = {"width": width, "height": height}
     pytest.pw_window_size = window_size
 
+    pytest.pw_skip_snapshot_check = config.getoption("--skip-snapshot-check")
+    pytest.pw_snapshot_threshold = config.getoption("--snapshot-threshold")
+
     if not config.option.base_url:
         config.option.base_url = BASE_URL
 
@@ -80,18 +94,21 @@ def pytest_configure(config):
 
 
 @pytest.fixture
-def prepared_page(page: Page) -> Page:
+def prepared_page(page: Page, assert_snapshot) -> Page:
     """Prepares the page for tests:
     - add handling of browser console errors and optional
     attachement of browser errorr to allure steps;
     - maximize viewport if '--maximized' CLI option was set;
     """
 
+    # --- Window size ---
     # Set window size if '--maximized' CLI option was used
+    # Note: brwoser cli option to maximize works weird with PW,
+    #       so this is a workaround
     if pytest.pw_window_size:
         page.set_viewport_size(pytest.pw_window_size)
 
-    # Handle browser console errors
+    # --- Handle browser console errors ---
     browser_errors = []
 
     def log_console_error_msg(msg):
@@ -114,8 +131,22 @@ def prepared_page(page: Page) -> Page:
 
     page.on("console", log_console_error_msg)
 
+    # --- Snapshot comparison ---
+    def assert_page_snapshot():
+        if pytest.pw_skip_snapshot_check:
+            logging.warning('Skipping snapshot comparison')
+            return
+
+        assert_snapshot(
+            page.screenshot(),
+            threshold=pytest.pw_snapshot_threshold
+        )
+
+    page.assert_snapshot = assert_page_snapshot
+
     yield page
 
+    # --- Attaches browser errors to Allure report ---
     if not browser_errors:
         return
 
