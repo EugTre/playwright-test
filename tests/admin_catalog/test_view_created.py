@@ -25,7 +25,7 @@ def test_view_created(
 ):
     """Verifies that created entity may be viewed via Edit form,
     and values are match to previously saved"""
-    with given("logged admin user is at Geo Zones page"):
+    with given("logged admin user is at Catalog page"):
         admin_category_page.reload()
 
     with given("there is created Geozone entity in the table"):
@@ -34,15 +34,18 @@ def test_view_created(
         )
 
     with when("user clicks Edit button for entity"):
-        edit_form: AdminCatalogEditFormPage = (
+        form: AdminCatalogEditFormPage = (
             admin_category_page.edit_entry(
                 row_idx=row_idx, entity=new_product
             )
         )
 
-    with then("user is navigated to Edit Geo Zone form"):
-        edit_form.verify_page()
-        edit_form.url_should_contain_entity_id()
+    with then("user is navigated to Edit Product form"):
+        form.verify_page()
+        form.url_should_contain_entity_id()
 
     with then("form is populated with expected data"):
-        edit_form.form_data_should_match_to(new_product)
+        form.form_data_should_match_to(new_product)
+
+    with then("uploaded images are correctly displayed"):
+        form.uploaded_images_should_match(new_product)

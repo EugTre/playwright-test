@@ -4,8 +4,7 @@ import allure
 from playwright.sync_api import Page, expect
 
 from utils.models.admin_catalog import ProductEntity, ProductFormTab
-from utils.elements import Button, Label
-
+from utils.elements import Button, Image
 
 from .admin_catalog_add_form_page import AdminCatalogAddFormPage
 
@@ -22,9 +21,13 @@ class AdminCatalogEditFormPage(AdminCatalogAddFormPage):
             page, "#content .card-action button[name='delete']", "Delete"
         )
 
-        self.general_added_images = Label(
+        self.general_added_images = Image(
             page, "#tab-general #images div.images img",
             "Added Images"
+        )
+        self.general_added_image = Image(
+            page, "#tab-general #images div.images img:nth-child({idx})",
+            "Added Image"
         )
         self.general_remove_image_button = Button(
             page, "#tab-general div.images div.form-group:last-child a.remove",
@@ -74,7 +77,7 @@ class AdminCatalogEditFormPage(AdminCatalogAddFormPage):
             self.general_remove_image_button.click()
 
     # --- Assertions
-    @allure.step("Check that page URL contains geo zone ID")
+    @allure.step("Check that page URL contains product ID")
     def url_should_contain_entity_id(self):
         """Checks that pages url contains given entity_id"""
         expect(self.page).to_have_url(self.url)
@@ -102,3 +105,14 @@ class AdminCatalogEditFormPage(AdminCatalogAddFormPage):
 
         self.switch_tab(ProductFormTab.STOCK)
         self.stock_quantity.should_have_value(str(entity.quantity))
+
+    @allure.step("Check that uploaded images match to originals")
+    def uploaded_images_should_match(self, entity: ProductEntity):
+        """Checks that uploaded images are similar to originals
+        from used product entity"""
+        count = self.general_added_images.get_locator().count()
+        for i in range(count):
+            self.general_added_image.source_should_match(
+                entity.images[i],
+                idx=(1 + i)
+            )

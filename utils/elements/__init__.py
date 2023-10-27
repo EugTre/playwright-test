@@ -11,3 +11,4 @@ from .select import Select
 from .table import Table
 from .textarea import Textarea
 from .title import Title
+from .image import Image
