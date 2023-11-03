@@ -1,5 +1,5 @@
 """Image element class"""
-import allure
+import allure  # type: ignore
 from playwright.sync_api import expect
 
 from utils.steps.admin_catalog_steps import step_compare_uploaded_images
@@ -15,7 +15,7 @@ class Image(BaseElement):
         """Return name of the element's type."""
         return "image"
 
-    def get_src_image(self, **locator_qualifiers) -> str:
+    def get_src_image(self, **locator_qualifiers) -> str | None:
         """Returns 'src' value of image element"""
         return self.get_locator(**locator_qualifiers).get_attribute("src")
 
@@ -34,6 +34,8 @@ class Image(BaseElement):
         """Checks that element have given source."""
 
         url = self.get_src_image(**locator_qualifiers)
+        assert url, "Image's src is empty/not set!"
+
         response = self.page.context.request.get(url)
 
         step_compare_uploaded_images(

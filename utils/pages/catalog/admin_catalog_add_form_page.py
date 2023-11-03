@@ -1,5 +1,5 @@
 """Admin / Catalog / Create New Product form"""
-import allure
+import allure  # type: ignore
 
 from playwright.sync_api import Page
 
@@ -106,13 +106,14 @@ class AdminCatalogAddFormPage(AdminBasicFormPage):
             self.general_price_input.click_and_fill(entity.price)
             self.general_sku_input.click_and_fill(entity.sku)
 
-            for img_path in entity.images:
-                self.general_add_image_button.click()
-                with self.page.expect_file_chooser() as fc:
-                    self.general_new_image_file_input.get_last().click()
+            if entity.images is not None:
+                for img_path in entity.images:
+                    self.general_add_image_button.click()
+                    with self.page.expect_file_chooser() as fc:
+                        self.general_new_image_file_input.get_last().click()
 
-                chooser = fc.value
-                chooser.set_files(img_path)
+                    chooser = fc.value
+                    chooser.set_files(img_path)
 
             self.switch_tab(ProductFormTab.INFORMATION)
             self.info_short_desc_input.click_and_fill(entity.short_desc)

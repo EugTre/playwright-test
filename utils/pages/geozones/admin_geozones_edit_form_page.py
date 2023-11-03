@@ -1,5 +1,5 @@
 """Admin -> Geo Zones -> Edit Geo Zone page"""
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page, expect
 
 from utils.elements import Button
@@ -11,7 +11,7 @@ from .admin_geozones_add_form_page import AdminGeozonesAddFormPage
 class AdminGeozonesEditFormPage(AdminGeozonesAddFormPage):
     """Admin -> Geo Zones page"""
 
-    def __init__(self, page: Page, entity_id: str) -> None:
+    def __init__(self, page: Page, entity_id: int) -> None:
         super().__init__(page)
 
         self.entity_id = entity_id

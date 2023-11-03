@@ -1,49 +1,42 @@
 """Collection of helpers to access API"""
 import logging
 from typing import Any
-from collections.abc import Generator
+from collections.abc import Generator, Callable
 from functools import cache
 
-import allure
+import allure  # type: ignore
 import requests
 
 from utils.models.base_entity import BackOfficeEntity
-from utils.models.entitiy_types import EntityType
+from utils.models.entitiy_types import EntityType, EntityApiMapping
 from utils import helpers
 
 
-GENERATOR_FUNCTIONS_PER_TYPE = {
-    EntityType.USER: helpers.generate_new_admin_user,
-    EntityType.GEOZONE: helpers.generate_new_geozone_entity,
-    EntityType.PRODUCT: helpers.generate_new_product_entity
-}
-
-REQUESTS_PER_ENTITY_TYPE = {
-    EntityType.USER: {
-        "create": {
-            "url": "/admin/?app=users&doc=edit_user",
-            "as_url_encoded": True
-        },
-        "delete": "/admin/?app=users&doc=edit_user&user_id={entity_id}"
-    },
-    EntityType.GEOZONE: {
-        "create": {
-            "url": "/admin/?app=geo_zones&doc=edit_geo_zone",
-            "as_url_encoded": True
-        },
-        "delete":
-            "/admin/?app=geo_zones&doc=edit_geo_zone&geo_zone_id={entity_id}",
-    },
-    EntityType.PRODUCT: {
-        "create": {
-            "url": "/admin/?category_id=0&app=catalog&doc=edit_product",
-            "as_url_encoded": False
-        },
-        "delete":
-            "/admin/?app=catalog&doc=edit_product&category_id=0"
-            "&product_id={entity_id}"
+GENERATOR_FUNCTIONS_PER_TYPE: \
+    dict[EntityType, Callable[..., BackOfficeEntity]] = \
+    {
+        EntityType.USER: helpers.generate_new_admin_user,
+        EntityType.GEOZONE: helpers.generate_new_geozone_entity,
+        EntityType.PRODUCT: helpers.generate_new_product_entity
     }
-}
+
+REQUESTS_PER_ENTITY_TYPE: dict[EntityType, EntityApiMapping] = {
+        EntityType.USER: EntityApiMapping(
+            create_url="/admin/?app=users&doc=edit_user",
+            delete_url="/admin/?app=users&doc=edit_user&user_id={entity_id}"
+        ),
+        EntityType.GEOZONE: EntityApiMapping(
+            create_url="/admin/?app=geo_zones&doc=edit_geo_zone",
+            delete_url="/admin/?app=geo_zones&doc=edit_geo_zone"
+                       "&geo_zone_id={entity_id}"
+        ),
+        EntityType.PRODUCT: EntityApiMapping(
+            create_url="/admin/?category_id=0&app=catalog&doc=edit_product",
+            delete_url="/admin/?app=catalog&doc=edit_product&category_id=0"
+                       "&product_id={entity_id}",
+            create_as_url_form=False
+        )
+    }
 
 
 @cache
@@ -85,16 +78,15 @@ def create_entity_request(
     base_url: str
 ) -> None:
     """API request to create new product from provided ProductEntity."""
-    request_url = REQUESTS_PER_ENTITY_TYPE[entity_type]["create"]["url"]
-    as_url_encoded = \
-        REQUESTS_PER_ENTITY_TYPE[entity_type]["create"]["as_url_encoded"]
+    request_mapping = REQUESTS_PER_ENTITY_TYPE[entity_type]
+    request_url = request_mapping.create_url
 
-    request_params = {
+    request_params: dict[str, Any] = {
         "url": f"{base_url}{request_url}",
         "timeout": 10
     }
 
-    if as_url_encoded:
+    if request_mapping.create_as_url_form:
         request_params["data"] = {
             **entity.as_payload(),
             "save": "Save"
@@ -116,7 +108,7 @@ def create_entity_request(
 
 def get_new_entity(
     entity_type: EntityType,
-    options: dict[str, Any],
+    options: dict[str, Any] | None,
     base_url: str,
     username: str,
     password: str,
@@ -184,7 +176,14 @@ def delete_entity(
     session: requests.Session, base_url: str
 ):
     """Deletes entity using request selected by entity class"""
-    request_url = REQUESTS_PER_ENTITY_TYPE[entity.entity_type]["delete"]
+    request_mapping = REQUESTS_PER_ENTITY_TYPE[entity.entity_type]
+    request_url = request_mapping.delete_url
+    if not isinstance(request_url, str):
+        raise ValueError(
+            "Incorrect request URL was provided. "
+            f"Expected string, but {type(request_url)} was given."
+        )
+
     request_url = request_url.format(entity_id=entity.entity_id)
 
     session.post(

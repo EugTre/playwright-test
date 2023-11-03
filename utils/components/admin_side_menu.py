@@ -1,7 +1,7 @@
 """Admin Page side menu"""
 from typing import TYPE_CHECKING
 
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page
 
 from utils.elements import Button

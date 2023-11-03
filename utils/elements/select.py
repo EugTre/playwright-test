@@ -1,6 +1,6 @@
 """List item element"""
 
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Locator, expect
 
 from .base_element import BaseElement
@@ -28,7 +28,7 @@ class Select(BaseElement):
         """Returns locator to dropdown's items"""
         return self.get_locator(**locator_qualifiers).locator("option")
 
-    def get_option_names(self, **locator_qualifiers) -> list[tuple[str, str]]:
+    def get_option_names(self, **locator_qualifiers) -> list[str]:
         """Returns options as list of names"""
         return self.get_options(**locator_qualifiers).all_text_contents()
 

@@ -1,6 +1,6 @@
 """Small BDD-like context wrappers"""
 
-import allure
+import allure  # type: ignore
 
 
 def given(title: str):

@@ -16,7 +16,7 @@ class TextRepository:
         with open(file, encoding="utf-8") as repo_file:
             self.parser.read_file(repo_file)
 
-    def get(self, path: str) -> str | re.Pattern:
+    def get(self, path: str) -> str | re.Pattern[str]:
         """Returns value from given section and key.
         If value starts from r" or r' - value will be
         compiled as regex pattern.
@@ -32,7 +32,7 @@ class TextRepository:
         value = self.parser[section][key]
 
         if value.startswith('r"') or value.startswith("r'"):
-            value = re.compile(value[2:-1])
+            return re.compile(value[2:-1])
 
         return value
 

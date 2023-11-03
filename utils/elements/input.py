@@ -1,5 +1,5 @@
 """Input elements class"""
-import allure
+import allure  # type: ignore
 from playwright.sync_api import expect
 
 from utils.helpers import mask_string_value
@@ -17,7 +17,7 @@ class Input(BaseElement):
     # --- Actions
     def click_and_fill(
         self,
-        value: str,
+        value: str | int | float,
         mask_value=False,
         validate_value=False,
         **locator_qualifiers,
@@ -40,7 +40,7 @@ class Input(BaseElement):
 
     def fill(
         self,
-        value: str,
+        value: str | int | float,
         mask_value=False,
         validate_value=False,
         **locator_qualifiers,
@@ -54,7 +54,7 @@ class Input(BaseElement):
             validate_value (bool, optional): flag to validate value afterward.
             Defaults to False.
         """
-        value_to_log = mask_string_value(value) if mask_value else value
+        value_to_log = mask_string_value(str(value)) if mask_value else value
         with allure.step(
             f'Filling "{value_to_log}" into {self.type_of} with '
             f'name "{self.name}"'

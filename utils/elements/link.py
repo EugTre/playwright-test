@@ -1,5 +1,5 @@
 """Link element class"""
-import allure
+import allure  # type: ignore
 from playwright.sync_api import expect
 
 from .base_element import BaseElement

@@ -2,6 +2,7 @@
 import pathlib
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, MutableMapping
 
 from .entitiy_types import EntityType
 from .base_entity import BackOfficeEntity
@@ -27,19 +28,23 @@ class ProductEntity(BackOfficeEntity):
     price: float
     sku: str
 
-    short_desc: str | None = None
-    full_desc: str | None = None
+    short_desc: str = ""
+    full_desc: str = ""
     quantity: int = 50
     images: list[str] | tuple[str] | None = None
 
     def __repr__(self) -> str:
+        full_desc = self.full_desc
+        if full_desc and len(full_desc) > 25:
+            full_desc = full_desc[:20]
+
         return (
             f"ProductEntity(entity_id={self.entity_id}, "
             f"name={self.name}, "
             f"price={self.price}, "
             f"sku={self.sku}, "
             f"short_desc={self.short_desc}, "
-            f"full_desc={self.full_desc[:20]}, "
+            f"full_desc={full_desc}, "
             f"quantity={self.quantity}, "
             f"images={self.images}"
             ")"
@@ -49,7 +54,7 @@ class ProductEntity(BackOfficeEntity):
     def entity_type(self) -> EntityType:
         return EntityType.PRODUCT
 
-    def get_lookup_params(self) -> dict[str, str]:
+    def get_lookup_params(self) -> dict[str, int | str | None]:
         """Returns entry lookup params:
            - id
            - name
@@ -68,11 +73,11 @@ class ProductEntity(BackOfficeEntity):
             "price": price
         }
 
-    def as_payload(self) -> dict[str, str]:
+    def as_payload(self) -> MutableMapping[str, Any]:
         # use "Fieldname": (None, _Value)
         empty = (None, "")
-        payload = {
-            "status": (None, 1),
+        payload: MutableMapping[str, Any] = {
+            "status": (None, "1"),
             "date_valid_from": empty,
             "date_valid_to": empty,
             "name[en]": (None, self.name),
@@ -94,7 +99,7 @@ class ProductEntity(BackOfficeEntity):
             "new_attribute[group_id]": empty,
             "new_attribute[custom_value]": empty,
 
-            "purchase_price": (None, 0,),
+            "purchase_price": (None, "0"),
             "purchase_price_currency_code": (None, "USD"),
             "recommended_price": (None, "0.00"),
             "tax_class_id": empty,
@@ -103,18 +108,18 @@ class ProductEntity(BackOfficeEntity):
             "new_predefined_option[custom_value]": empty,
             "new_user_input_option[group_id": empty,
 
-            "quantity_min": (None, 0),
-            "quantity_max": (None, 0),
-            "quantity_step": (None, 0),
-            "quantity_unit_id": (None, 1),
-            "delivery_status_id": (None, 1),
-            "sold_out_status_id": (None, 1),
+            "quantity_min": (None, "0"),
+            "quantity_max": (None, "0"),
+            "quantity_step": (None, "0"),
+            "quantity_unit_id": (None, "1"),
+            "delivery_status_id": (None, "1"),
+            "sold_out_status_id": (None, "1"),
             # sku
-            "weight": (None, 0),
+            "weight": (None, "0"),
             "weight_class": (None, "kg"),
-            "dim_x": (None, 0),
-            "dim_y": (None, 0),
-            "dim_z": (None, 0),
+            "dim_x": (None, "0"),
+            "dim_y": (None, "0"),
+            "dim_z": (None, "0"),
             "dim_class": (None, "cm"),
             "quantity": (None, str(self.quantity)),
             "quantity_adjustment": (None, str(self.quantity))
@@ -123,7 +128,7 @@ class ProductEntity(BackOfficeEntity):
         if not self.images:
             return payload
 
-        # Add images
+        # Add images: (field_name, value, data_type)
         for img in self.images:
             payload["new_images[]"] = (
                 pathlib.Path(img).name,

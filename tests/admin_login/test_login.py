@@ -1,4 +1,6 @@
-import allure
+from typing import cast
+
+import allure  # type: ignore
 
 from constants import SUPERADMIN_PASSWORD, SUPERADMIN_USERNAME
 from utils.bdd import given, then, when
@@ -22,9 +24,8 @@ def test_login(admin_login_page: AdminLoginPage):
         admin_login_page.should_match_snapshot()
 
     with when("user puts valid creds and presses Login button"):
-        admin_page: AdminMainPage = admin_login_page.login(
-            username, password
-        )
+        admin_page = admin_login_page.login(username, password)
+        admin_page = cast(AdminMainPage, admin_page)
 
     with then("user become logged in and sees success notification"):
         admin_page.verify_page()

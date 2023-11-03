@@ -3,7 +3,7 @@ epic('Admin')
 feature('Categories')
 story('Geo Zones')
 """
-import allure
+import allure  # type: ignore
 import pytest
 
 from utils import helpers

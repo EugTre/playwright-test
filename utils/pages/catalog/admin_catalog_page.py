@@ -1,9 +1,13 @@
 """Admin -> Catalog"""
-import allure
+import allure  # type: ignore
+from typing import cast
 
 from playwright.sync_api import Page
 from utils.models.admin_catalog import ProductEntity
-from utils.models.entry_lookup_strategy import EntryLookupStrategy
+from utils.models.entry_lookup_strategy import (
+    EntryLookupStrategy,
+    LookupStrategiesType
+)
 from utils.elements import Button, Label
 from ..admin_basic_category_page import AdminBasicCategoryPage
 from .admin_catalog_add_form_page import AdminCatalogAddFormPage
@@ -66,7 +70,7 @@ class AdminCatalogPage(AdminBasicCategoryPage):
         return ("Catalog",)
 
     @property
-    def table_row_lookup_strategy(self) -> tuple[EntryLookupStrategy]:
+    def table_row_lookup_strategy(self) -> LookupStrategiesType:
         return (
             self.entity_id_get_value_strategy,
             EntryLookupStrategy(column=4, field="name", selector="a"),
@@ -94,7 +98,7 @@ class AdminCatalogPage(AdminBasicCategoryPage):
     def edit_entry(
         self,
         entity: ProductEntity,
-        row_idx: str | None = None,
+        row_idx: int | None = None,
     ) -> AdminCatalogEditFormPage:
         """Clickes Edit button for selected geozone (by id or by name)"""
         if entity is None and row_idx is None:
@@ -105,13 +109,14 @@ class AdminCatalogPage(AdminBasicCategoryPage):
 
         if not row_idx or not entity.entity_id:
             row_idx = self.find_in_table(entity, True)
+            cast(int, row_idx)
 
         # Note:
         # Shift row_idx +1 from 0-based index of py-array
         # to 1-based of css selector
         self.product_edit_button.click(row=row_idx + 1)
         return AdminCatalogEditFormPage(
-            self.page, entity.entity_id, entity.name
+            self.page, cast(int, entity.entity_id), entity.name
         )
 
     # -- Asserts

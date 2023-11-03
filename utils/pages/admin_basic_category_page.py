@@ -2,13 +2,15 @@
 from typing import TYPE_CHECKING
 
 import pytest
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page
 
 from utils.models.base_entity import BackOfficeEntity
 from utils.models.entry_lookup_strategy import (
     EntryLookupStrategy,
-    EntryReadStrategy
+    EntryReadStrategy,
+    LookupStrategiesType,
+    ReadStrategiesType
 )
 from utils.components import AdminSideMenu, AdminTopMenu
 from utils.elements import Title, Table
@@ -50,24 +52,26 @@ class AdminBasicCategoryPage(BasePage):
         return ""
 
     @property
-    def breadcrumbs(self) -> tuple[str]:
+    def breadcrumbs(self) -> tuple[str, ...]:
         """Tuple of page's top menu breadcrumbs"""
-        return tuple()
+        return tuple("", )
 
     @property
-    def entity_id_get_value_strategy(self) -> EntryReadStrategy:
+    def entity_id_get_value_strategy(self) -> EntryLookupStrategy:
         """Returns value get strategy for entity ID"""
         return EntryLookupStrategy(
             1, "id", "input", by_text=False, is_primary_key=True
         )
 
     @property
-    def table_row_lookup_strategy(self) -> tuple[EntryLookupStrategy]:
+    def table_row_lookup_strategy(self) -> LookupStrategiesType:
         """Returns lookup strategy for category table."""
         return (self.entity_id_get_value_strategy, )
 
     @property
-    def table_get_row_text_strategy(self) -> tuple[EntryReadStrategy]:
+    def table_get_row_text_strategy(
+        self
+    ) -> ReadStrategiesType | LookupStrategiesType:
         """Returns get texts read strategy category table.
         Defaults to "table_row_lookup_strategy" property."""
         return self.table_row_lookup_strategy
@@ -106,10 +110,10 @@ class AdminBasicCategoryPage(BasePage):
         self.log("Entity was found at row %s", row_idx)
 
         if update_entity_id:
-            entity.entity_id = self.table.get_entry_texts(
+            entity.entity_id = int(self.table.get_entry_texts(
                 row_idx,
                 (self.entity_id_get_value_strategy, )
-            )[0]
+            )[0])
 
         allure.attach(
             f"At Row {row_idx}. Entity: {entity}",
@@ -129,9 +133,7 @@ class AdminBasicCategoryPage(BasePage):
             is a separate column defined by self.table_get_row_text_strategy.
         """
         with allure.step("Entry is in table"):
-            row_idx = self.find_in_table(
-                entity, self.table_row_lookup_strategy
-            )
+            row_idx = self.find_in_table(entity)
             self.table.entry_should_be_visible(row_idx)
 
         table_data = self.table.get_entry_texts(

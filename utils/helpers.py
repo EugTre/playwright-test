@@ -51,7 +51,7 @@ def compare_ordering(items: list, ruleset: list, assert_msg: str):
     assert items == sorted_items, assert_msg
 
 
-def generate_new_admin_user() -> tuple[str, str]:
+def generate_new_admin_user() -> UserEntity:
     """Generates credentials for new admin user"""
     username = "".join(
         (
@@ -79,8 +79,8 @@ def generate_new_admin_user() -> tuple[str, str]:
 
 
 def generate_new_geozone_entity(
-    add_countries: list[str] | tuple[str] | None = None,
-):
+    add_countries: list[str] | tuple[str, ...] | None = None,
+) -> GeozoneEntity:
     """Creates Geozone entity with randomized name and
     some stub data.
 
@@ -109,7 +109,7 @@ def generate_new_geozone_entity(
 
 def generate_new_product_entity(
     add_images: list[str] | tuple[str]
-):
+) -> ProductEntity:
     """Creates instance of Product entity clas
     with randomized name and properties.
     """

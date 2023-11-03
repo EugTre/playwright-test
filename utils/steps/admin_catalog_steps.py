@@ -2,7 +2,7 @@ import math
 import logging
 from io import BytesIO
 
-import allure
+import allure  # type: ignore
 from PIL import Image
 from pixelmatch.contrib.PIL import pixelmatch
 
@@ -63,12 +63,14 @@ def step_compare_uploaded_images(
     y1 = int(math.floor((tgt_h - h) / 2))
 
     mode = src_img.mode
-    if len(mode) == 1:  # L, 1
-        new_background = 255
+
+    new_background: int | tuple[int, ...]
     if len(mode) == 3:  # RGB
         new_background = (255, 255, 255)
-    if len(mode) == 4:  # RGBA, CMYK
+    elif len(mode) == 4:  # RGBA, CMYK
         new_background = (255, 255, 255, 255)
+    else:  # L, 1
+        new_background = 255
 
     new_image = Image.new(mode, (tgt_w, tgt_h), new_background)
     new_image.paste(src_img, (x1, y1, x1 + w, y1 + h))

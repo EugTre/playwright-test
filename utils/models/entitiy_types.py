@@ -1,4 +1,5 @@
 from enum import StrEnum, auto
+from dataclasses import dataclass
 
 
 class EntityType(StrEnum):
@@ -9,3 +10,10 @@ class EntityType(StrEnum):
     USER = auto()
     GEOZONE = auto()
     PRODUCT = auto()
+
+
+@dataclass
+class EntityApiMapping:
+    create_url: str
+    delete_url: str
+    create_as_url_form: bool = True

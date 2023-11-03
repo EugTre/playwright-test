@@ -41,7 +41,7 @@ class EntryLookupStrategy:
     def prepare_strategy_data(
         self,
         entity_fields_collection: dict[str, str | int]
-    ) -> str:
+    ) -> str | None:
         """Converts strategy data into JS-like array to be injected
         into a snippet.
 
@@ -133,3 +133,7 @@ class EntryReadStrategy:
         )
 
         return output
+
+
+LookupStrategiesType = tuple[EntryLookupStrategy, ...]
+ReadStrategiesType = tuple[EntryReadStrategy, ...]

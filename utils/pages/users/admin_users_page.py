@@ -1,5 +1,8 @@
 """Representation of Admin / Users page"""
-from utils.models.entry_lookup_strategy import EntryLookupStrategy
+from utils.models.entry_lookup_strategy import (
+    EntryLookupStrategy,
+    LookupStrategiesType
+)
 
 from ..admin_basic_category_page import AdminBasicCategoryPage
 
@@ -21,12 +24,12 @@ class AdminUsersPage(AdminBasicCategoryPage):
         return "Users"
 
     @property
-    def breadcrumbs(self) -> tuple[str]:
+    def breadcrumbs(self) -> tuple[str, ...]:
         """Tuple of page's top menu breadcrumbs"""
         return tuple("Users",)
 
     @property
-    def table_row_lookup_strategy(self) -> tuple[EntryLookupStrategy]:
+    def table_row_lookup_strategy(self) -> LookupStrategiesType:
         return (
             EntryLookupStrategy(
                 1, "entity_id", "input", by_text=False, is_primary_key=True

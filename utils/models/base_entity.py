@@ -2,6 +2,7 @@
 table view"""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Any, MutableMapping
 
 from .entitiy_types import EntityType
 
@@ -11,7 +12,7 @@ class BackOfficeEntity(ABC):
     """Abstract entity that:
     - may be created and deleted via API call
     - may be searched in table by some params"""
-    entity_id: str | None
+    entity_id: int | None
 
     @property
     @abstractmethod
@@ -19,7 +20,9 @@ class BackOfficeEntity(ABC):
         """Returns EntityType of entity"""
 
     @abstractmethod
-    def as_payload(self) -> dict[str, str]:
+    def as_payload(
+        self
+    ) -> MutableMapping[str, Any]:
         """Returns entity as dict of values ready to
         send to API"""
 

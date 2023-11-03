@@ -1,7 +1,7 @@
 """Admin -> Geo Zones -> Create New Geo Zone page"""
 from logging import DEBUG
 
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page
 
 from utils.elements import Button, Input, Select, Table
@@ -78,7 +78,7 @@ class AdminGeozonesAddFormPage(AdminBasicFormPage):
         self.desc_field.should_be_visible()
         self.zone_add_button.should_be_visible()
 
-    def get_country_option_names(self) -> list[tuple[str, str]]:
+    def get_country_option_names(self) -> list[str]:
         """Returns list of options in format (value, name)
         except very first "-- Select --" option"""
         options_names = self.zone_country_select.get_option_names()[1:]

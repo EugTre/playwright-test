@@ -1,13 +1,15 @@
 """Fixtures related to tests"""
 import logging
+from typing import Generator, cast
 
-import allure
+import allure  # type: ignore
 import pytest
 
 import utils.api_helpers as api
 from constants import SUPERADMIN_PASSWORD, SUPERADMIN_USERNAME
 from utils.models.base_entity import BackOfficeEntity
 from utils.models.entitiy_types import EntityType
+from utils.models.admin_user import UserEntity
 from utils.models.admin_geozone import GeozoneEntity
 from utils.models.admin_catalog import ProductEntity
 from utils.pages import AdminBasicCategoryPage, AdminLoginPage, AdminMainPage
@@ -51,7 +53,7 @@ def admin_category_page(request, prepared_page) -> AdminBasicCategoryPage:
 # --- Data generation
 @allure.step("Create new admin user via API request")
 @pytest.fixture
-def new_admin_user(base_url: str) -> tuple[str, str]:
+def new_admin_user(base_url: str) -> Generator[BackOfficeEntity, None, None]:
     """Creates new admin user by API call"""
     yield from api.get_new_entity(
         entity_type=EntityType.USER,
@@ -63,7 +65,7 @@ def new_admin_user(base_url: str) -> tuple[str, str]:
 
 
 @pytest.fixture
-def new_geozone(request, base_url: str) -> GeozoneEntity:
+def new_geozone(request, base_url: str) -> Generator[BackOfficeEntity, None, None]:
     """Generates new geozone entity for tests and handling
     it's deletion afterwards"""
     options = {
@@ -83,7 +85,7 @@ def new_geozone(request, base_url: str) -> GeozoneEntity:
 
 
 @pytest.fixture
-def new_product(request, base_url: str) -> ProductEntity:
+def new_product(request, base_url: str) -> Generator[BackOfficeEntity, None, None]:
     """Generates new product entity for tests and handling
     it's deletion afterwards"""
     options = {
@@ -104,7 +106,7 @@ def new_product(request, base_url: str) -> ProductEntity:
 
 
 @pytest.fixture
-def handle_entities(base_url: str):
+def handle_entities(base_url: str) -> Generator[list[BackOfficeEntity], None, None]:
     """Deletes object of BackOfficeEntity (e.g. GeozoneEntity,
     ProductEntity) after a test"""
     pool: list[BackOfficeEntity] = []

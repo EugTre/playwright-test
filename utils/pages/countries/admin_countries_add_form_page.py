@@ -1,7 +1,7 @@
 """Admin -> Countries -> Create New Country page"""
 from logging import WARNING
 
-import allure
+import allure  # type: ignore
 import pytest
 from playwright.sync_api import Page, TimeoutError
 
@@ -99,7 +99,7 @@ class AdminCountriesAddFormPage(AdminBasicFormPage):
         return "Create New Country"
 
     @property
-    def breadcrumbs(self) -> tuple[str]:
+    def breadcrumbs(self) -> tuple[str, ...]:
         return ("Countries", "Create New Country")
 
     def _verify_page_items(self):

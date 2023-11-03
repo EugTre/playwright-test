@@ -121,7 +121,7 @@ See [offical manual](https://playwright.dev/python/docs/test-runners#cli-argumen
 
 Contains resources needed for tests (e.g. pictures for products).
 
-`messages.ini` is a collection of texts used by test to compare against application. Used by `utils.text_repository.TextRepository` to extract message by it's key.
+`messages.ini` is a collection of texts used by test to compare against application. Used by `utils.text_repository.TextRepository` to extract message by it's key. Messages may be plain text or regex (should be wrapped with `r"..."` or `r'...'`).
 
 ### `tests` directory
 

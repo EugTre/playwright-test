@@ -1,5 +1,5 @@
 """Button element class"""
-import allure
+import allure  # type: ignore
 
 from .base_element import BaseElement
 

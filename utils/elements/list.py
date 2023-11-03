@@ -1,7 +1,7 @@
 """List item element"""
 
-import allure
-from playwright.sync_api import expect
+import allure  # type: ignore
+from playwright.sync_api import expect, Locator
 
 from .base_element import BaseElement
 
@@ -13,12 +13,12 @@ class List(BaseElement):
     def type_of(self) -> str:
         return "list"
 
-    def get_items(self, **locator_qualifiers) -> list:
+    def get_items(self, **locator_qualifiers) -> Locator:
         """Returns list's items"""
         return self.get_locator(**locator_qualifiers)
 
     def should_have_items(
-        self, items_text: list[str] | tuple[str], **locator_qualifiers
+        self, items_text: list[str], **locator_qualifiers
     ) -> None:
         """Checks that list's items are equal to given list of names"""
         with allure.step(

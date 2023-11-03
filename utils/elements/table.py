@@ -1,11 +1,12 @@
 """List item element"""
-from typing import Self
-import allure
+from typing import cast
+import allure  # type: ignore
 from playwright.sync_api import Locator, Page, expect
 
 from utils.models.entry_lookup_strategy import (
-    EntryLookupStrategy,
-    EntryReadStrategy
+    EntryReadStrategy,
+    LookupStrategiesType,
+    ReadStrategiesType
 )
 from utils.models.base_entity import BackOfficeEntity
 from .base_element import BaseElement
@@ -58,39 +59,13 @@ class Table(BaseElement):
     def __init__(self, page: Page, locator: str, name: str) -> None:
         super().__init__(page, locator, name)
 
-        self.lookup_strategy = None
-        self.get_texts_strategy = None
-        self.get_values_strategy = None
-
     @property
     def type_of(self) -> str:
         return "table"
 
-    def set_strategy(
+    def _convert_to_read_strategy(
         self,
-        lookup: tuple[EntryLookupStrategy] | None = None,
-        texts: tuple[EntryReadStrategy] | None = None,
-        values: tuple[EntryReadStrategy] | None = None,
-    ) -> Self:
-        """Sets value finding/read defaults strategies used
-        by .find_entry(), .get_entry_texts() and .get_entry_values()
-        methids."""
-        if lookup:
-            self.log('Set default Lookup strategy to %s', lookup)
-            self.lookup_strategy = lookup
-        if texts:
-            self.log('Set default Get Texts strategy to %s', texts)
-            # Conver Lookup strategy entites to Read Strategy ones
-            self.get_texts_strategy = self._convert_lookup_strategy(texts)
-        if values:
-            self.log('Set default Get Values strategy to %s', values)
-            self.get_values_strategy = self._convert_lookup_strategy(values)
-
-        return self
-
-    def _convert_lookup_strategy(
-        self,
-        strategies: list[EntryLookupStrategy] | tuple[EntryLookupStrategy]
+        strategies: LookupStrategiesType | ReadStrategiesType
     ):
         """Convert  Lookup strategy entites to Read Strategy objects"""
         return tuple(
@@ -116,7 +91,7 @@ class Table(BaseElement):
         return self.get_rows_locator(**locator_qualifiers).count()
 
     def find_entry(self, table_entry: BackOfficeEntity,
-                   strategies: tuple[EntryLookupStrategy] = None,
+                   strategies: LookupStrategiesType,
                    **locator_qualifiers) -> int:
         """Find given target values using given lookup strategy
         and return row index, where entry was found.
@@ -138,12 +113,12 @@ class Table(BaseElement):
         Returns:
             int: row index (0-based) of found entry.
         """
-        strategy = strategies if strategies else self.lookup_strategy
-        for st in strategy:
+        for st in strategies:
             if isinstance(st, EntryReadStrategy):
                 raise RuntimeError(
                     "EntryReadStrategy should not be used "
-                    "for Entry Lookup (.find_entry)!"
+                    "for Entry Lookup (.find_entry). "
+                    "Use EntryLookupStrategy only!"
                 )
 
         target_values = table_entry.get_lookup_params()
@@ -154,8 +129,8 @@ class Table(BaseElement):
                 "At least 1 lookup field should not be None."
             )
 
-        js_expr, strategy_data = self._prepare_expression(
-            JS_SNIPPET_FIND, strategy, target_values
+        js_expr, strategy_data = self._preprare_lookup_expression(
+            strategies, target_values
         )
 
         self.log(
@@ -179,7 +154,7 @@ class Table(BaseElement):
                     self.get_rows_content(row_idx, **locator_qualifiers)
                 )
             ])
-            strategy_info = "\n  ".join([str(st) for st in strategy])
+            strategy_info = "\n  ".join([str(st) for st in strategies])
             raise ValueError(
                 f"There is no row with data like {target_values}, "
                 f"in the {self.name}!\n"
@@ -195,17 +170,17 @@ class Table(BaseElement):
     def get_entry_texts(
         self,
         row_idx: int,
-        strategy: tuple[EntryReadStrategy | EntryLookupStrategy] = None,
+        strategy: ReadStrategiesType | LookupStrategiesType,
         **locator_qualifiers
-    ) -> tuple[str]:
+    ) -> list[str]:
         """Returns text from given row using given get_text_strategy.
         Strategy defines whas cells to check and how to retrieve values
         (e.g. from inner text, or from value of nested element).
 
         Args:
             strategies (optional,
-            tuple[EntryReadStrategy | EntryLookupStrategy] ): list of
-            strategies to use. Defaults to strategies set with
+            tuple[EntryReadStrategy, ...] | tuple[EntryLookupStrategy, ...] ):
+            list of strategies to use. Defaults to strategies set with
             .set_default_strategies(texts=...) method
             **locator_qualifiers (optional): kwargs for formatting
             base locator of the element.
@@ -216,23 +191,20 @@ class Table(BaseElement):
         Returns:
             int: row index (0-based) of found entry.
         """
-        if strategy:
-            strategy = self._convert_lookup_strategy(strategy)
-        else:
-            strategy = self.get_texts_strategy
+        strategy = self._convert_to_read_strategy(strategy)
 
         return self._get_entry_data(
             row_idx=row_idx,
-            strategy=strategy,
+            strategy=cast(ReadStrategiesType, strategy),
             **locator_qualifiers
         )
 
     def get_entry_values(
         self,
         row_idx: int,
-        strategy: tuple[EntryReadStrategy | EntryLookupStrategy] = None,
+        strategy: ReadStrategiesType,
         **locator_qualifiers
-    ) -> tuple[str]:
+    ) -> list[str]:
         """Returns values from given row using given get_values_strategy.
         Strategy defines whas cells to check and how to retrieve values
         (e.g. from inner text, or from value of nested element).
@@ -253,10 +225,7 @@ class Table(BaseElement):
         Returns:
             int: row index (0-based) of found entry.
         """
-        if strategy:
-            strategy = self._convert_lookup_strategy(strategy)
-        else:
-            strategy = self.get_values_strategy
+        strategy = self._convert_to_read_strategy(strategy)
 
         return self._get_entry_data(
             row_idx=row_idx,
@@ -266,9 +235,9 @@ class Table(BaseElement):
 
     def get_rows_content(
         self,
-        columns: list[int] | tuple[int] | None = None,
+        columns: list[int] | tuple[int, ...] | None = None,
         **locator_qualifiers,
-    ) -> list[tuple[str]]:
+    ) -> list[list[str]]:
         """Returns inner text content of all <td> blocks as list
         of tuples of values (strings) grouped by rows.
 
@@ -283,7 +252,7 @@ class Table(BaseElement):
         table = self.get_locator(**locator_qualifiers)
         columns_count = table.locator("thead th").count()
         if columns is None:
-            columns = range(columns_count)
+            columns = tuple(range(columns_count))
 
         output = []
         rows_content = table.locator("tbody td").all_text_contents()
@@ -303,11 +272,11 @@ class Table(BaseElement):
     def _get_entry_data(
         self,
         row_idx: int,
-        strategy: tuple[EntryReadStrategy] = None,
+        strategy: ReadStrategiesType,
         **locator_qualifiers
-    ) -> tuple[str]:
-        js_expr, strategy_data = self._prepare_expression(
-            JS_SNIPPET_GET_FROM_ROW, strategy
+    ) -> list[str]:
+        js_expr, strategy_data = self._prepare_read_expression(
+            strategy
         )
 
         self.log(
@@ -338,26 +307,54 @@ class Table(BaseElement):
 
         return row_data
 
-    def _prepare_expression(
+    def _preprare_lookup_expression(
         self,
-        snippet,
-        strategy: tuple[EntryReadStrategy | EntryLookupStrategy],
-        loadout: dict[str, str] | None = None
-    ) -> str:
+        strategy: LookupStrategiesType,
+        entity_fields_collection: dict[str, str | int]
+    ):
+        """Prepares JS expression using JS lookup snippet and
+        given strategy and fields collection.
+
+        Returns:
+            tuple[str, list[str]]: ready to use JS code and prepared
+            strategy data.
+        """
+        prepared_lookup_data = (
+            st.prepare_strategy_data(entity_fields_collection)
+            for st in strategy
+        )
+
+        strategy_data = [
+            prepared
+            for prepared in prepared_lookup_data
+            if prepared is not None
+        ]
+
+        snippet = JS_SNIPPET_FIND % ",".join(strategy_data)
+        return (snippet, strategy_data)
+
+    def _prepare_read_expression(
+        self,
+        strategy: ReadStrategiesType,
+    ) -> tuple[str, list[str]]:
         """Prepares JS expression using given snippet and strategy.
         If loadout was given - pass loadout values into a snippet.
 
         Returns:
-            str: ready to use JS code.
+            tuple[str, list[str]]: ready to use JS code and prepared
+            strategy data.
         """
-        strategy_gen = \
-            (st.prepare_strategy_data(loadout) for st in strategy) \
-            if loadout else \
-            (st.prepare_strategy_data() for st in strategy)
+        prepared_read_data = (
+            st.prepare_strategy_data() for st in strategy
+        )
 
-        strategy_data = [st for st in strategy_gen if st is not None]
+        strategy_data = [
+            prepared
+            for prepared in prepared_read_data
+            if prepared is not None
+        ]
 
-        snippet = snippet % ",".join(strategy_data)
+        snippet = JS_SNIPPET_GET_FROM_ROW % ",".join(strategy_data)
         return (snippet, strategy_data)
 
     # --- Actions

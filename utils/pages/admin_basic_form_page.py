@@ -1,9 +1,8 @@
 """Admin form page (unspecified)"""
 
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page
 
-from utils.models.base_entity import BackOfficeEntity
 from utils.components import AdminSideMenu, AdminTopMenu
 from utils.elements import Title, Button
 
@@ -42,9 +41,9 @@ class AdminBasicFormPage(BasePage):
         return ""
 
     @property
-    def breadcrumbs(self) -> tuple[str]:
+    def breadcrumbs(self) -> tuple[str, ...]:
         """Tuple of page's top menu breadcrumbs"""
-        return tuple()
+        return tuple("",)
 
     def _verify_page_items(self):
         self.side_menu.should_be_visible()
@@ -63,10 +62,6 @@ class AdminBasicFormPage(BasePage):
         """Click Cancel button"""
         self.log("Exiting form by 'Cancel' button")
         self.cancel_button.click()
-
-    def fill_from_entity(self, entity: BackOfficeEntity) -> None:
-        """Fill form fields using given Geozone entity as
-        a value"""
 
     # --- Assertions
     def header_text_should_match(self, header: str | None = None):

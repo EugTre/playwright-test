@@ -1,6 +1,6 @@
 """Component for group of elements: Input, Labels and
 extra elements in label"""
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page
 
 from utils.elements import Link
@@ -26,7 +26,7 @@ class LinkAnnotatedField(Field):
         locator: str,
         name: str,
         input_type: str = "input",
-        elements_selectors_override: dict = None,
+        elements_selectors_override: dict | None = None,
     ) -> None:
         super().__init__(
             page, locator, name, input_type, elements_selectors_override

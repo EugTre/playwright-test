@@ -1,14 +1,17 @@
 """Admin -> Geo Zones page"""
 # from logging import DEBUG
+from typing import cast
 
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page
 
 from utils.elements import Button, Label, Table
 from utils.models.admin_geozone import GeozoneEntity
 from utils.models.entry_lookup_strategy import (
     EntryLookupStrategy,
-    EntryReadStrategy
+    EntryReadStrategy,
+    LookupStrategiesType,
+    ReadStrategiesType
 )
 from ..admin_basic_category_page import AdminBasicCategoryPage
 from .admin_geozones_add_form_page import AdminGeozonesAddFormPage
@@ -52,7 +55,7 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
         return ("Geo Zones",)
 
     @property
-    def table_row_lookup_strategy(self) -> tuple[EntryLookupStrategy]:
+    def table_row_lookup_strategy(self) -> LookupStrategiesType:
         return (
             EntryLookupStrategy(
                 column=1, field="id", selector='input', by_text=False,
@@ -63,7 +66,7 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
         )
 
     @property
-    def table_get_row_text_strategy(self) -> tuple[EntryReadStrategy]:
+    def table_get_row_text_strategy(self) -> ReadStrategiesType:
         return (
             EntryReadStrategy(column=2),
             EntryReadStrategy(column=3, selector="a"),
@@ -85,7 +88,7 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
     def edit_entry(
         self,
         entity: GeozoneEntity,
-        row_idx: str | None = None,
+        row_idx: int | None = None,
     ) -> AdminGeozonesEditFormPage:
         """Clickes Edit button for selected geozone (by id or by name)"""
         if entity is None and row_idx is None:
@@ -95,12 +98,16 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
 
         if not row_idx or not entity.entity_id:
             row_idx = self.find_in_table(entity, True)
+            cast(int, row_idx)
 
         # Note:
         # Shift row_idx +1 from 0-based index of py-array
         # to 1-based of css selector
         self.geozone_edit_button.click(row=row_idx + 1)
-        return AdminGeozonesEditFormPage(self.page, entity.entity_id)
+
+        return AdminGeozonesEditFormPage(
+            self.page, cast(int, entity.entity_id)
+        )
 
     # --- Assertions
     @allure.step(
@@ -125,7 +132,10 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
                 'Name mismatches for ' \
                 f'Geozone "{entity.name}" (ID: {entity.entity_id})'
 
-        expected_count = len(entity.zones)
+        expected_count = 0
+        if entity.zones:
+            expected_count = len(entity.zones)
+
         with allure.step(
             f"Geozone number of zones matches (expected {expected_count})"
         ):
@@ -136,6 +146,6 @@ class AdminGeozonesPage(AdminBasicCategoryPage):
         with allure.step(
             f"Displayed ID match to actual ID {entity.entity_id}"
         ):
-            assert entity.entity_id == data_id, \
+            assert str(entity.entity_id) == data_id, \
                 'Geozone displayed ID mismatches for ' \
                 f'Geozone "{entity.name}" (ID: {entity.entity_id})'

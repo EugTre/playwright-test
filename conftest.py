@@ -1,10 +1,11 @@
 """Fixtures for tests"""
 import logging
 import tkinter
+from typing import Generator, cast
 
-import allure
+import allure  # type: ignore
 import pytest
-from playwright.sync_api import Page
+from playwright.sync_api import Page, ViewportSize
 
 from constants import BASE_URL
 
@@ -81,10 +82,19 @@ def pytest_configure(config):
         tkapp.destroy()
 
         window_size = {"width": width, "height": height}
-    pytest.pw_window_size = window_size
+    setattr(pytest, "pw_window_size", window_size)
+    setattr(
+        pytest, "pw_skip_snapshot_check",
+        config.getoption("--skip-snapshot-check")
+    )
+    setattr(
+        pytest, "pw_snapshot_threshold",
+        config.getoption("--snapshot-threshold")
+    )
 
-    pytest.pw_skip_snapshot_check = config.getoption("--skip-snapshot-check")
-    pytest.pw_snapshot_threshold = config.getoption("--snapshot-threshold")
+    # pytest.pw_window_size = window_size
+    # pytest.pw_skip_snapshot_check = config.getoption("--skip-snapshot-check")
+    # pytest.pw_snapshot_threshold = config.getoption("--snapshot-threshold")
 
     if not config.option.base_url:
         config.option.base_url = BASE_URL
@@ -94,7 +104,7 @@ def pytest_configure(config):
 
 
 @pytest.fixture
-def prepared_page(page: Page, assert_snapshot) -> Page:
+def prepared_page(page: Page, assert_snapshot) -> Generator[Page, None, None]:
     """Prepares the page for tests:
     - add handling of browser console errors and optional
     attachement of browser errorr to allure steps;
@@ -106,7 +116,7 @@ def prepared_page(page: Page, assert_snapshot) -> Page:
     # Note: brwoser cli option to maximize works weird with PW,
     #       so this is a workaround
     if pytest.pw_window_size:
-        page.set_viewport_size(pytest.pw_window_size)
+        page.set_viewport_size(cast(ViewportSize, pytest.pw_window_size))
 
     # --- Handle browser console errors ---
     browser_errors = []
@@ -141,8 +151,7 @@ def prepared_page(page: Page, assert_snapshot) -> Page:
             page.screenshot(),
             threshold=pytest.pw_snapshot_threshold
         )
-
-    page.assert_snapshot = assert_page_snapshot
+    setattr(page, "assert_snapshot", assert_page_snapshot)
 
     yield page
 

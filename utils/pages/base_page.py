@@ -2,7 +2,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page, Response, expect
 
 
@@ -51,7 +51,7 @@ class BasePage(ABC):
         self.log('Cheking page title to be "%s"', title)
         expect(self.page).to_have_title(title)
 
-    def visit(self, url: str = None) -> Response | None:
+    def visit(self, url: str | None = None) -> Response | None:
         """Navigates to page.
 
         Args:
@@ -84,13 +84,17 @@ class BasePage(ABC):
         self.log("Reloading current page (URL: %s)", self.page.url)
 
         with allure.step(f"Reloading page {self.page.url}"):
-            self.page.reload(wait_until="domcontentloaded")
+            response = self.page.reload(wait_until="domcontentloaded")
 
         self.log("Page (URL: %s) reloaded", self.page.url)
+        return response
 
     @allure.step("Snapshot of page visually matches to expected")
     def should_match_snapshot(self) -> None:
         """Checks page snapshot (screenshot) to match to
         'golden' snapshot"""
         self.log("Checking visual snapshot of the page")
-        self.page.assert_snapshot()
+        assert_snapshot = getattr(self.page, "assert_snapshot")
+        if assert_snapshot:
+            assert_snapshot()
+        # self.page.assert_snapshot()  # type: ignore[attr-defined]

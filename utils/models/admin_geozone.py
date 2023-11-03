@@ -49,9 +49,13 @@ class GeozoneEntity(BackOfficeEntity):
 
         return output
 
-    def get_lookup_params(self) -> dict[str, str | int]:
+    def get_lookup_params(self) -> dict[str, str | int | None]:
+        zone_count = None
+        if self.zones:
+            zone_count = len(self.zones)
+
         return {
             "id": self.entity_id,
             "name": self.name,
-            "zones": len(self.zones)
+            "zones": zone_count
         }

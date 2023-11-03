@@ -22,7 +22,7 @@ class Field(BaseComponent):
         locator: str,
         name: str,
         input_type: str = "input",
-        elements_selectors_override: dict = None,
+        elements_selectors_override: dict | None = None,
     ) -> None:
         """Instnatiate Field component object.
 

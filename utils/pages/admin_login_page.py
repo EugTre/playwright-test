@@ -1,5 +1,5 @@
 """Admin Login page"""
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page
 
 from utils.elements import Button, Input, Label
@@ -41,13 +41,15 @@ class AdminLoginPage(BasePage):
         self,
         username: str,
         password: str,
-        expect_redirect=True,
-    ) -> AdminMainPage:
+        expect_redirect: bool = True,
+    ) -> AdminMainPage | None:
         """Fills username and password, then presses login button.
 
         Args:
             username (str): username to fill.
             password (str): password to fill.
+            expect_redirect (optional, bool): flag to expect successful
+            redirect and return new page (AdminMainPage). Defaults to True.
         """
         masked_password = mask_string_value(password)
         self.log("Logging in using creds %s/%s", username, masked_password)
@@ -61,7 +63,10 @@ class AdminLoginPage(BasePage):
 
             self.login_button.click()
 
-        return AdminMainPage(self.page) if expect_redirect else None
+        if not expect_redirect:
+            return None
+
+        return AdminMainPage(self.page)
 
     # --- Asserts
     @allure.step("Check login fail banner is displayed")

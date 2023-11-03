@@ -1,4 +1,4 @@
-import allure
+import allure  # type: ignore
 import pytest
 
 from constants import (

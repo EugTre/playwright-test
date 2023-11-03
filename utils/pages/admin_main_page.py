@@ -1,5 +1,5 @@
 """Admin main page (after login)"""
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page
 
 from utils.components import AdminSideMenu, AdminTopMenu

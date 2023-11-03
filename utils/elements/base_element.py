@@ -2,7 +2,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Locator, Page, expect
 
 

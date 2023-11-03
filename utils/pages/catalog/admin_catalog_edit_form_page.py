@@ -1,6 +1,6 @@
 """Admin -> Product -> Edit Product page"""
 
-import allure
+import allure  # type: ignore
 from playwright.sync_api import Page, expect
 
 from utils.models.admin_catalog import ProductEntity, ProductFormTab
@@ -11,7 +11,9 @@ from .admin_catalog_add_form_page import AdminCatalogAddFormPage
 
 class AdminCatalogEditFormPage(AdminCatalogAddFormPage):
     """Represents Admin -> Catalog -> Edit Product page"""
-    def __init__(self, page: Page, entity_id: str, entity_name: str) -> None:
+    def __init__(
+        self, page: Page, entity_id: int, entity_name: str
+    ) -> None:
         super().__init__(page)
 
         self.entity_id = entity_id
@@ -110,6 +112,12 @@ class AdminCatalogEditFormPage(AdminCatalogAddFormPage):
     def uploaded_images_should_match(self, entity: ProductEntity):
         """Checks that uploaded images are similar to originals
         from used product entity"""
+        if entity.images is None:
+            raise RuntimeError(
+                "There is no images in given entity to compare. "
+                f"Entity: {entity}"
+            )
+
         count = self.general_added_images.get_locator().count()
         for i in range(count):
             self.general_added_image.source_should_match(
