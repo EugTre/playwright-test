@@ -3,7 +3,7 @@
 # Leave empty if using --base-url CLI options
 BASE_URL = 'http://192.168.56.104'
 
-MESSAGES_REPOSITORY = 'messages.ini'
+MESSAGES_REPOSITORY = 'resources/messages.ini'
 
 # Admin user-pass for test environemnt
 SUPERADMIN_USERNAME = "admin"
