@@ -27,15 +27,13 @@ from utils.pages import AdminBasicCategoryPage, AdminMainPage
 def test_categories_available(
     category: AdminCategory, admin_main_page: AdminMainPage
 ):
-    """Tests that all admin categories are listed
-    and may be navigated"""
+    """Tests that admin category may be navigated"""
     with given("logged admin at main page"):
         pass
 
     with when(f"admin navigates to category [{category}]"):
-        subpage: AdminBasicCategoryPage = admin_main_page.change_category(
-            category
-        )
+        subpage: AdminBasicCategoryPage = \
+            admin_main_page.side_menu.change_category(category)
 
     with then("category page is opened and category header is displayed"):
         subpage.verify_page()

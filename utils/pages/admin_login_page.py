@@ -42,7 +42,6 @@ class AdminLoginPage(BasePage):
         username: str,
         password: str,
         expect_redirect=True,
-        **locator_qualifiers,
     ) -> AdminMainPage:
         """Fills username and password, then presses login button.
 
@@ -54,15 +53,13 @@ class AdminLoginPage(BasePage):
         self.log("Logging in using creds %s/%s", username, masked_password)
 
         with allure.step(f"Logging as {username}/{masked_password}"):
-            self.username_input.click(**locator_qualifiers)
-            self.username_input.fill(username, **locator_qualifiers)
+            self.username_input.click()
+            self.username_input.fill(username)
 
-            self.password_input.click(**locator_qualifiers)
-            self.password_input.fill(
-                password, mask_value=True, **locator_qualifiers
-            )
+            self.password_input.click()
+            self.password_input.fill(password, mask_value=True)
 
-            self.login_button.click(**locator_qualifiers)
+            self.login_button.click()
 
         return AdminMainPage(self.page) if expect_redirect else None
 

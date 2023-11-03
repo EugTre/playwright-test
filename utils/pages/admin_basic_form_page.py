@@ -1,5 +1,4 @@
 """Admin form page (unspecified)"""
-from typing import TYPE_CHECKING
 
 import allure
 from playwright.sync_api import Page
@@ -9,9 +8,6 @@ from utils.components import AdminSideMenu, AdminTopMenu
 from utils.elements import Title, Button
 
 from .base_page import BasePage
-
-if TYPE_CHECKING:
-    from utils.models.admin_categories import AdminCategory
 
 
 class AdminBasicFormPage(BasePage):
@@ -56,11 +52,6 @@ class AdminBasicFormPage(BasePage):
         self.header_title.should_be_visible()
 
     # --- Actions
-    def change_category(self, category: "AdminCategory") -> BasePage:
-        """Selects and clicks category item in side menu, and
-        returns instance of basic category page (unspecified)"""
-        return self.side_menu.change_category(category)
-
     @allure.step("Save form")
     def save(self) -> None:
         """Clicks save button at form"""

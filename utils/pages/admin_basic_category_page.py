@@ -166,7 +166,7 @@ class AdminBasicCategoryPage(BasePage):
         assert self.get_row_text_for_entity(entity), \
             "No data found for entity!"
 
-    @allure.step("Check that geozone is missing in the table")
+    @allure.step("Check that entry is missing in the table")
     def table_entry_should_be_missing(self, entity: BackOfficeEntity):
         """Checks that table is missing entry like given.
         Asserts otherwise.

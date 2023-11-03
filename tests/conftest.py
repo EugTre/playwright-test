@@ -43,7 +43,7 @@ def admin_category_page(request, prepared_page) -> AdminBasicCategoryPage:
     of the test"""
     category = request.node.get_closest_marker("admin_category_page").args[0]
     admin_page = login_as_admin_step(prepared_page)
-    category_page = admin_page.change_category(category)
+    category_page = admin_page.side_menu.change_category(category)
 
     return category_page
 

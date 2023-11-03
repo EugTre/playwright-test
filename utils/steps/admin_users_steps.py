@@ -16,7 +16,9 @@ def find_user_exists(login_page: AdminLoginPage, entity):
     main_page = login_page.login(
         SUPERADMIN_USERNAME, SUPERADMIN_PASSWORD
     )
-    users_page: AdminUsersPage = main_page.change_category(AdminCategory.USERS)
+    users_page: AdminUsersPage = main_page.side_menu.change_category(
+        AdminCategory.USERS
+    )
     users_page.find_in_table(entity, True)
     logging.info("Find User Entity ID for %s was done", entity)
 
